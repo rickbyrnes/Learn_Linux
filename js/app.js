@@ -308,7 +308,7 @@
     $('breadcrumb').appendChild(el('strong', '', 'Course complete'));
     $('topbar-level').textContent = '★ ' + totalXp() + ' XP';
 
-    const w = el('div', 'welcome');
+    const w = el('div', 'done-panel');
     w.appendChild(el('h1', '', 'You finished the dojo!'));
     w.appendChild(el('p', '', 'You have ' + completedCount() + ' of ' + ALL.length + ' lessons under your belt and ' + totalXp() + ' XP. The real learning happens when you use these commands on your own machine. Keep practicing — try a real Linux box, break things in a VM, and read the man pages.'));
     const b = el('button', 'btn', 'Back to the first lesson');
@@ -318,22 +318,59 @@
     view.appendChild(w);
   }
 
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
   function renderWelcome() {
     const view = $('lesson-view');
     view.innerHTML = '';
     $('breadcrumb').innerHTML = '';
     $('breadcrumb').appendChild(el('strong', '', COURSE.title));
-    $('topbar-level').textContent = 'HANDS-ON LINUX';
+    $('topbar-level').textContent = 'Hands-on Linux';
+
+    const resumeId = findResumeId();
+    const cta = resumeId ? 'Resume: ' + escapeHtml(entryById(resumeId).lesson.title) : 'Start the course →';
 
     const w = el('div', 'welcome');
-    w.appendChild(el('h1', '', COURSE.title));
-    w.appendChild(el('p', '', COURSE.tagline + ' Each lesson has a short explanation, a task you complete in a simulated terminal, and a quick quiz. No installation, no risk — just type.'));
-    const resumeId = findResumeId();
-    const b = el('button', 'btn', resumeId ? 'Resume: ' + entryById(resumeId).lesson.title : 'Start the course');
-    b.type = 'button';
-    b.addEventListener('click', () => openLesson(resumeId || ALL[0].id));
-    w.appendChild(b);
+    w.innerHTML = `
+      <div class="hero">
+        <div>
+          <div class="hero-pills">
+            <span class="pill">${ALL.length} lessons</span>
+            <span class="pill teal">${COURSE.modules.length} levels</span>
+            <span class="pill">No setup</span>
+          </div>
+          <h1>Learn Linux <span>by doing.</span></h1>
+          <p>${escapeHtml(COURSE.tagline)} Each lesson gives you a short explanation, a task to complete in a practice terminal, and a quick quiz. Nothing is installed and nothing can break — you just type.</p>
+          <button class="btn" id="hero-start" type="button">${cta}</button>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-glow"></div>
+          <div class="hero-window">
+            <div class="term-bar">
+              <span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span>
+              <span class="term-name">learner@linux-dojo — bash</span>
+            </div>
+            <div class="hero-code">
+              <div><span class="c-green">learner</span>:<span class="c-blue">~</span>$ pwd</div>
+              <div>/home/learner</div>
+              <div><span class="c-green">learner</span>:<span class="c-blue">~</span>$ ls</div>
+              <div>notes.txt&nbsp; projects/&nbsp; todo.txt</div>
+              <div><span class="c-green">learner</span>:<span class="c-blue">~</span>$ <span class="c-amber">grep</span> Linux notes.txt</div>
+              <div>Linux is fun</div>
+              <div><span class="c-dim"># now you try →</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="features">
+        <div class="feature"><div class="feature-icon">⌨</div><h3>Real command practice</h3><p>Type actual commands in a simulated shell with its own filesystem. Mistakes are harmless.</p></div>
+        <div class="feature"><div class="feature-icon">◎</div><h3>Learn by doing</h3><p>Every lesson has a hands-on task and a short quiz with explanations — no passive reading.</p></div>
+        <div class="feature"><div class="feature-icon">↗</div><h3>Progress that sticks</h3><p>Earn XP, track completed lessons, and pick up exactly where you left off.</p></div>
+      </div>`;
     view.appendChild(w);
+    $('hero-start').addEventListener('click', () => openLesson(resumeId || ALL[0].id));
   }
 
   function findResumeId() {
@@ -459,4 +496,6 @@
   renderSidebar();
   if (state.current && entryById(state.current)) renderLesson(entryById(state.current));
   else renderWelcome();
+  const bootError = $('boot-error');
+  if (bootError) bootError.remove();
 })();

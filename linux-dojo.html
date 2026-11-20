@@ -1,0 +1,2324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Linux Dojo — Learn Linux by doing</title>
+  <meta name="description" content="An interactive, hands-on Linux course with a simulated terminal, exercises, and quizzes.">
+  <meta name="theme-color" content="#5b5bd6">
+  <style>
+/* Linux Dojo — a clean, modern light UI with a dark terminal for practice. */
+
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #f3f5fa;
+  --border: #e4e8f1;
+  --border-strong: #d6dce9;
+  --text: #1d2433;
+  --text-soft: #475467;
+  --muted: #667085;
+  --faint: #98a2b3;
+  --primary: #5b5bd6;
+  --primary-dark: #4545b8;
+  --primary-soft: #eef0ff;
+  --teal: #0e9f9f;
+  --green: #16a34a;
+  --green-soft: #eaf7ef;
+  --amber: #c2740a;
+  --amber-soft: #fff6e6;
+  --red: #dc2626;
+  --red-soft: #fef0ef;
+  --term-bg: #0d1424;
+  --term-bar: #182032;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --sidebar-w: 276px;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, .05);
+  --shadow-md: 0 8px 26px rgba(16, 24, 40, .07);
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0; min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; }
+button:focus-visible, input:focus-visible { outline: 3px solid rgba(91,91,214,.35); outline-offset: 2px; }
+
+/* ---------- layout ---------- */
+.app { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: var(--sidebar-w); flex: 0 0 var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh;
+  overflow-y: auto; z-index: 10;
+}
+
+.brand {
+  display: flex; align-items: center; gap: 12px;
+  padding: 22px 20px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.brand-mark {
+  width: 42px; height: 42px; flex: 0 0 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary), #21a5a5);
+  color: #fff; font-family: var(--mono); font-weight: 800; font-size: 17px;
+  display: grid; place-items: center;
+  box-shadow: 0 6px 16px rgba(91,91,214,.28);
+}
+.brand-name { font-weight: 750; font-size: 17px; letter-spacing: -.3px; }
+.brand-tag { color: var(--faint); font-size: 12px; margin-top: 1px; }
+
+.progress-summary { padding: 20px 20px 8px; }
+.progress-label {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; color: var(--muted); margin-bottom: 9px; font-weight: 600;
+}
+.progress-label strong { color: var(--text); font-weight: 700; }
+.progress-track { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; box-shadow: inset 0 0 0 1px var(--border); }
+.progress-fill {
+  height: 100%; width: 0; border-radius: 99px;
+  background: linear-gradient(90deg, var(--primary), var(--teal));
+  transition: width .45s cubic-bezier(.2,.8,.2,1);
+}
+
+.modules { padding: 12px 12px 18px; flex: 1; }
+.module { margin-bottom: 10px; }
+.module-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; color: var(--text-soft);
+  font-size: 12px; font-weight: 750; letter-spacing: .3px; text-transform: uppercase;
+}
+.module-icon {
+  width: 24px; height: 24px; flex: 0 0 24px;
+  display: grid; place-items: center; border-radius: 7px;
+  background: var(--primary-soft); color: var(--primary);
+  font-family: var(--mono); font-size: 13px; text-transform: none;
+}
+.module-count {
+  margin-left: auto; font-size: 11px; color: var(--muted);
+  background: var(--surface-2); border: 1px solid var(--border);
+  padding: 2px 8px; border-radius: 99px; text-transform: none; letter-spacing: 0;
+}
+.lesson-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 9px 11px; margin: 2px 0;
+  background: transparent; color: var(--text-soft); border: 0; border-radius: 9px;
+  cursor: pointer; font-size: 13.5px; transition: background .15s, color .15s;
+}
+.lesson-item:hover { background: var(--surface-2); color: var(--text); }
+.lesson-item.active {
+  background: var(--primary-soft); color: var(--primary-dark); font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+.lesson-dot {
+  width: 17px; height: 17px; flex: 0 0 17px; border-radius: 50%;
+  border: 1.5px solid var(--border-strong); background: var(--surface);
+  display: grid; place-items: center; font-size: 10px; color: #fff;
+}
+.lesson-item.done .lesson-dot { background: var(--green); border-color: var(--green); }
+.lesson-item.done { color: var(--muted); }
+.lesson-xp { margin-left: auto; font-size: 10.5px; color: var(--faint); font-family: var(--mono); }
+
+.sidebar-footer {
+  padding: 16px 20px 20px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.xp-chip {
+  font-size: 12px; font-weight: 750; color: var(--amber);
+  background: var(--amber-soft); border: 1px solid #f5dfb2;
+  padding: 6px 11px; border-radius: 99px; white-space: nowrap;
+}
+.link-btn { background: none; border: 0; color: var(--faint); cursor: pointer; font-size: 11.5px; padding: 4px; }
+.link-btn:hover { color: var(--red); }
+
+/* ---------- main ---------- */
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.topbar {
+  height: 62px; flex: 0 0 62px;
+  border-bottom: 1px solid var(--border); background: rgba(255,255,255,.85);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 32px; position: sticky; top: 0; z-index: 5;
+}
+.menu-toggle { display: none; background: none; border: 0; color: var(--text); font-size: 21px; cursor: pointer; }
+.breadcrumb { font-size: 13px; color: var(--muted); display: flex; align-items: center; }
+.breadcrumb strong { color: var(--text); font-weight: 700; }
+.breadcrumb .sep { margin: 0 9px; color: var(--faint); }
+.topbar-level {
+  margin-left: auto; font-size: 11px; font-weight: 750; letter-spacing: .6px;
+  color: var(--primary); background: var(--primary-soft);
+  padding: 5px 11px; border-radius: 99px; text-transform: uppercase;
+}
+.content { padding: 34px 36px 80px; max-width: 920px; width: 100%; margin: 0 auto; }
+
+/* ---------- lesson ---------- */
+.lesson-head { margin-bottom: 26px; }
+.eyebrow { font-size: 11.5px; text-transform: uppercase; letter-spacing: 1.3px; color: var(--primary); font-weight: 800; margin-bottom: 9px; }
+.lesson-title { font-size: 32px; line-height: 1.2; margin: 0 0 12px; letter-spacing: -.8px; font-weight: 780; }
+.lesson-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.xp-badge {
+  color: var(--amber); background: var(--amber-soft); border: 1px solid #f5dfb2;
+  padding: 3px 10px; border-radius: 99px; font-family: var(--mono); font-size: 11.5px; font-weight: 700;
+}
+.completed-badge {
+  color: var(--green); background: var(--green-soft); border: 1px solid #c9ecd6;
+  padding: 3px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 700;
+}
+
+.panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px 26px; margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.panel-title {
+  font-size: 11.5px; text-transform: uppercase; letter-spacing: 1.2px;
+  color: var(--faint); font-weight: 800; margin: 0 0 16px;
+}
+.lesson-content { line-height: 1.75; color: var(--text-soft); }
+.lesson-content > :first-child { margin-top: 0; }
+.lesson-content > :last-child { margin-bottom: 0; }
+.lesson-content p { margin: 0 0 15px; }
+.lesson-content ul { margin: 0 0 16px; padding-left: 22px; }
+.lesson-content li { margin: 6px 0; }
+.lesson-content li::marker { color: var(--primary); }
+.lesson-content strong { color: var(--text); font-weight: 700; }
+.lesson-content code {
+  font-family: var(--mono); font-size: .87em;
+  background: var(--primary-soft); border: 1px solid #e0e2ff;
+  padding: 2px 6px; border-radius: 5px; color: var(--primary-dark); font-weight: 600;
+}
+.lesson-content pre {
+  background: #131a2b; border: 1px solid #222c42; border-radius: 10px;
+  padding: 16px 18px; overflow-x: auto; font-family: var(--mono);
+  font-size: 13px; line-height: 1.65; color: #d7e0ef; margin: 0 0 17px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+.lesson-content pre code { background: none; border: 0; padding: 0; color: inherit; font-weight: 400; }
+.lesson-content .tip, .lesson-content .warning {
+  padding: 12px 16px; border-radius: 0 9px 9px 0; font-size: 14px; margin: 4px 0 16px;
+}
+.lesson-content .tip { border-left: 4px solid var(--teal); background: #eaf8f8; color: #176b6b; }
+.lesson-content .warning { border-left: 4px solid var(--amber); background: var(--amber-soft); color: #8a5206; }
+
+/* ---------- task ---------- */
+.task-status {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 15px 17px; border-radius: 11px; margin-bottom: 16px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 14px; line-height: 1.55;
+}
+.task-status .status-icon {
+  flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 12px; font-weight: 800;
+  background: var(--border-strong); color: #fff; margin-top: 1px;
+}
+.task-status.pending { background: var(--amber-soft); border-color: #f3dfb7; }
+.task-status.pending .status-icon { background: var(--amber); }
+.task-status.passed { background: var(--green-soft); border-color: #c9ecd6; }
+.task-status.passed .status-icon { background: var(--green); }
+.task-status .status-text { flex: 1; }
+.task-status code { font-family: var(--mono); font-size: .87em; background: rgba(255,255,255,.7); border: 1px solid rgba(0,0,0,.06); padding: 1px 5px; border-radius: 4px; color: var(--primary-dark); font-weight: 600; }
+.task-hint { color: var(--muted); font-size: 12.5px; margin-top: 8px; }
+
+/* ---------- terminal ---------- */
+.terminal {
+  background: var(--term-bg); border: 1px solid #26324a;
+  border-radius: 11px; overflow: hidden; font-family: var(--mono);
+  box-shadow: 0 12px 28px rgba(13,20,36,.2);
+}
+.term-bar {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 14px; background: var(--term-bar); border-bottom: 1px solid #2b3852;
+}
+.term-dot { width: 11px; height: 11px; border-radius: 50%; }
+.term-dot.r { background: #ff5f56; }
+.term-dot.y { background: #ffbd2e; }
+.term-dot.g { background: #27c93f; }
+.term-name { margin-left: 9px; font-size: 11.5px; color: #8fa0bd; }
+.term-clear { margin-left: auto; background: rgba(255,255,255,.06); border: 1px solid #33415c; color: #aebbd2; font-family: var(--mono); font-size: 11px; cursor: pointer; padding: 3px 9px; border-radius: 6px; }
+.term-clear:hover { background: rgba(255,255,255,.13); color: #fff; }
+.term-output {
+  padding: 16px 17px; height: 270px; overflow-y: auto;
+  font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+  color: #dbe4f2;
+}
+.term-output::-webkit-scrollbar { width: 9px; }
+.term-output::-webkit-scrollbar-thumb { background: #2c3a55; border-radius: 9px; }
+.term-line { min-height: 1.2em; }
+.term-line.err { color: #ff8b83; }
+.term-line.dir { color: #6fd6f5; font-weight: 700; }
+.term-line.accent { color: #c4a5ff; }
+.term-line.info { color: #7ee2a8; }
+.term-line.match { color: #ffd479; }
+.term-line.muted { color: #7e8da6; }
+.term-line.cmd { color: #f0f4fa; }
+.term-line.cmd .prompt { color: #7ee2a8; }
+.term-line.cmd .path { color: #6fd6f5; }
+.term-input-row { display: flex; align-items: center; padding: 12px 17px; border-top: 1px solid #26324a; font-size: 13px; }
+.term-prompt { color: #7ee2a8; white-space: nowrap; }
+.term-prompt .path { color: #6fd6f5; }
+.term-prompt .dollar { color: #8fa0bd; }
+.term-input { flex: 1; margin-left: 9px; background: none; border: 0; outline: none; color: #f0f4fa; font-family: var(--mono); font-size: 13px; caret-color: #7ee2a8; }
+.term-help { font-size: 11.5px; color: #7e8da6; padding: 0 17px 13px; }
+
+/* ---------- quiz ---------- */
+.question { margin-bottom: 24px; }
+.question:last-child { margin-bottom: 0; }
+.question-q { font-weight: 700; margin-bottom: 12px; line-height: 1.5; color: var(--text); }
+.options { display: grid; gap: 9px; }
+.option {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 12px 14px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border-strong);
+  color: var(--text-soft); cursor: pointer; font-size: 14px;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.option:hover:not(:disabled) { border-color: var(--primary); background: var(--primary-soft); transform: translateX(2px); }
+.option .radio {
+  width: 18px; height: 18px; flex: 0 0 18px; border-radius: 50%;
+  border: 1.5px solid var(--border-strong); background: var(--surface);
+  display: grid; place-items: center; font-size: 10px; color: #fff;
+}
+.option.selected { border-color: var(--primary); background: var(--primary-soft); color: var(--primary-dark); font-weight: 600; }
+.option.selected .radio { border-color: var(--primary); background: var(--primary); }
+.option.correct { border-color: var(--green); background: var(--green-soft); color: #116b32; }
+.option.correct .radio { border-color: var(--green); background: var(--green); }
+.option.wrong { border-color: var(--red); background: var(--red-soft); color: #a11d1d; }
+.option.wrong .radio { border-color: var(--red); background: var(--red); }
+.option:disabled { cursor: default; transform: none; }
+.explain { margin-top: 10px; font-size: 13px; line-height: 1.55; color: #176b6b; border-left: 4px solid var(--teal); background: #eaf8f8; padding: 10px 14px; border-radius: 0 8px 8px 0; }
+.quiz-score { font-size: 14px; margin-bottom: 18px; color: var(--muted); font-weight: 600; }
+
+/* ---------- actions ---------- */
+.actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+.btn {
+  background: linear-gradient(135deg, var(--primary), #4d7bd6); color: #fff; border: 0;
+  padding: 12px 20px; border-radius: 10px; font-weight: 750; cursor: pointer; font-size: 14px;
+  box-shadow: 0 6px 16px rgba(91,91,214,.28); transition: transform .1s, filter .15s, box-shadow .15s;
+}
+.btn:hover:not(:disabled) { filter: brightness(1.06); box-shadow: 0 8px 20px rgba(91,91,214,.34); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+.btn.secondary { background: var(--surface); color: var(--primary-dark); border: 1px solid var(--border-strong); box-shadow: var(--shadow-sm); }
+.btn.secondary:hover:not(:disabled) { border-color: var(--primary); background: var(--primary-soft); }
+.action-note { font-size: 12.5px; color: var(--muted); }
+
+/* ---------- welcome / hero ---------- */
+.welcome { padding: 10px 0 20px; }
+.hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; margin-bottom: 34px; }
+.hero h1 { font-size: 42px; line-height: 1.12; letter-spacing: -1.6px; margin: 12px 0 16px; font-weight: 800; }
+.hero h1 span { background: linear-gradient(100deg, var(--primary), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero p { color: var(--muted); font-size: 16px; line-height: 1.65; margin: 0 0 24px; }
+.hero-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.pill { font-size: 12px; font-weight: 700; color: var(--primary-dark); background: var(--primary-soft); border: 1px solid #dfe1ff; padding: 5px 11px; border-radius: 99px; }
+.pill.teal { color: #0d7373; background: #e6f7f7; border-color: #c6ecec; }
+.hero-visual { position: relative; }
+.hero-window {
+  background: var(--term-bg); border: 1px solid #26324a; border-radius: 13px;
+  overflow: hidden; box-shadow: 0 20px 45px rgba(16,24,40,.22); transform: rotate(1.2deg);
+}
+.hero-window .term-bar { padding: 10px 13px; }
+.hero-window .term-name { font-size: 11px; }
+.hero-code { padding: 18px; font-family: var(--mono); font-size: 12.5px; line-height: 1.9; color: #dbe4f2; min-height: 208px; }
+.hero-code .c-green { color: #7ee2a8; }
+.hero-code .c-blue { color: #6fd6f5; }
+.hero-code .c-dim { color: #7e8da6; }
+.hero-code .c-amber { color: #ffd479; }
+.hero-glow { position: absolute; inset: -18px -10px -24px; border-radius: 20px; background: radial-gradient(circle at 60% 40%, rgba(91,91,214,.18), transparent 65%); z-index: -1; }
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.feature {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; box-shadow: var(--shadow-sm);
+}
+.feature-icon {
+  width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+  font-size: 19px; background: var(--primary-soft); margin-bottom: 13px;
+}
+.feature:nth-child(2) .feature-icon { background: #e6f7f7; }
+.feature:nth-child(3) .feature-icon { background: var(--amber-soft); }
+.feature h3 { font-size: 15px; margin: 0 0 7px; font-weight: 750; }
+.feature p { font-size: 13.5px; color: var(--muted); margin: 0; line-height: 1.55; }
+.done-panel { text-align: center; padding: 54px 20px; }
+.done-panel h1 { font-size: 34px; margin: 0 0 12px; letter-spacing: -.8px; }
+.done-panel p { color: var(--muted); max-width: 580px; margin: 0 auto 26px; line-height: 1.7; }
+
+/* ---------- fallback when scripts are blocked ---------- */
+.boot-error {
+  max-width: 640px; margin: 40px auto; padding: 22px 24px;
+  background: var(--amber-soft); border: 1px solid #f3dfb7; border-radius: var(--radius);
+  color: #8a5206; font-size: 14px; line-height: 1.6;
+}
+.boot-error code { font-family: var(--mono); background: rgba(255,255,255,.7); padding: 2px 6px; border-radius: 4px; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-visual { order: -1; }
+  .features { grid-template-columns: 1fr; }
+}
+@media (max-width: 820px) {
+  :root { --sidebar-w: 262px; }
+  .menu-toggle { display: block; }
+  .sidebar { position: fixed; z-index: 20; transform: translateX(-100%); transition: transform .2s; box-shadow: 12px 0 30px rgba(16,24,40,.18); }
+  .sidebar.open { transform: translateX(0); }
+  .content { padding: 24px 18px 60px; }
+  .topbar { padding: 0 16px; }
+  .lesson-title { font-size: 27px; }
+  .panel { padding: 20px 18px; }
+  .hero h1 { font-size: 34px; }
+}
+
+</style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">&gt;_</div>
+        <div>
+          <div class="brand-name">Linux Dojo</div>
+          <div class="brand-tag" id="brand-tag">Learn by doing</div>
+        </div>
+      </div>
+
+      <div class="progress-summary" id="progress-summary"></div>
+      <nav class="modules" id="module-list" aria-label="Course modules"></nav>
+
+      <div class="sidebar-footer">
+        <div class="xp-chip"><span class="xp-star">★</span> <span id="xp-display">0 XP</span></div>
+        <button class="link-btn" id="reset-progress" type="button">Reset progress</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Toggle menu">☰</button>
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <div class="topbar-level" id="topbar-level"></div>
+      </header>
+      <div class="content" id="lesson-view">
+        <div class="boot-error" id="boot-error">
+          <strong>The course didn't start.</strong> Your browser blocked the local scripts, or this file was opened as raw source.
+          Download <code>linux-dojo.html</code> and open that file in your browser instead — everything is contained in it.
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+/*
+ * terminal.js — a small, self-contained simulated Unix shell.
+ *
+ * It maintains a virtual filesystem in memory and implements a useful subset
+ * of everyday commands. Lessons provide their own starting filesystem and a
+ * `check` function that inspects the shell (history + filesystem) to decide
+ * whether an exercise is complete.
+ *
+ * Exposed globally as window.LinuxDojo.Shell so everything works from file://
+ * with plain <script> tags (no modules / no build step).
+ */
+(function (global) {
+  'use strict';
+
+  const NS = (global.LinuxDojo = global.LinuxDojo || {});
+
+  /* ---------- path + filesystem helpers ---------- */
+
+  function splitPath(p) {
+    return String(p || '').split('/').filter(Boolean);
+  }
+
+  function resolveParts(cwdParts, arg) {
+    const a = String(arg == null ? '' : arg);
+    if (a === '' || a === '.') return cwdParts.slice();
+    if (a === '~' || a.startsWith('~/')) return splitPath('/home/learner' + a.slice(1));
+    if (a.startsWith('/')) return splitPath(a);
+    const parts = cwdParts.slice();
+    for (const seg of splitPath(a)) {
+      if (seg === '.') continue;
+      if (seg === '..') parts.pop();
+      else parts.push(seg);
+    }
+    return parts;
+  }
+
+  function joinParts(parts) {
+    return '/' + parts.join('/');
+  }
+
+  function getNode(root, parts) {
+    let node = root;
+    for (const seg of parts) {
+      if (!node || node.type !== 'dir' || !Object.prototype.hasOwnProperty.call(node.children, seg)) {
+        return null;
+      }
+      node = node.children[seg];
+    }
+    return node;
+  }
+
+  function parentNode(root, parts) {
+    if (!parts.length) return null;
+    return getNode(root, parts.slice(0, -1));
+  }
+
+  function defaultMode(node) {
+    return node.type === 'dir' ? '755' : '644';
+  }
+
+  /* Build a node tree from a plain spec object:
+   *   { home: { learner: { 'notes.txt': 'hello', projects: {} } } }
+   * Objects become directories, strings become files (the string is content).
+   */
+  function buildFS(spec) {
+    const root = { type: 'dir', name: '/', children: {}, mode: '755' };
+    function add(parent, obj) {
+      for (const key of Object.keys(obj || {})) {
+        const val = obj[key];
+        if (val && typeof val === 'object' && !Array.isArray(val)) {
+          const dir = { type: 'dir', name: key, children: {}, mode: '755' };
+          parent.children[key] = dir;
+          add(dir, val);
+        } else {
+          parent.children[key] = {
+            type: 'file',
+            name: key,
+            content: String(val == null ? '' : val),
+            mode: '644',
+          };
+        }
+      }
+    }
+    add(root, spec || {});
+    return root;
+  }
+
+  /* ---------- line helpers ---------- */
+
+  function line(text, cls) {
+    return { text: String(text == null ? '' : text), cls: cls || 'out' };
+  }
+
+  /* ---------- the shell ---------- */
+
+  class Shell {
+    constructor(options) {
+      options = options || {};
+      this.root = buildFS(options.fs || {});
+      this.cwdParts = resolveParts([], options.cwd || '/home/learner');
+      // Ensure cwd exists; fall back to home, then root.
+      if (!this.nodeAt(this.cwdParts) || this.nodeAt(this.cwdParts).type !== 'dir') {
+        this.cwdParts = splitPath('/home/learner');
+        if (!this.nodeAt(this.cwdParts)) this.cwdParts = [];
+      }
+      this.home = splitPath('/home/learner');
+      this.user = options.user || 'learner';
+      this.host = options.host || 'linux-dojo';
+      this.history = [];
+      this.commandHelp = COMMAND_HELP;
+    }
+
+    /* public helpers used by lesson checkers */
+
+    cwd() {
+      return joinParts(this.cwdParts);
+    }
+
+    nodeAt(parts) {
+      return getNode(this.root, parts);
+    }
+
+    resolve(arg) {
+      return resolveParts(this.cwdParts, arg);
+    }
+
+    exists(arg) {
+      return !!this.nodeAt(this.resolve(arg));
+    }
+
+    node(arg) {
+      return this.nodeAt(this.resolve(arg));
+    }
+
+    content(arg) {
+      const n = this.node(arg);
+      return n && n.type === 'file' ? n.content : null;
+    }
+
+    mode(arg) {
+      const n = this.node(arg);
+      return n ? n.mode || defaultMode(n) : null;
+    }
+
+    ran(cmd) {
+      const c = String(cmd).trim();
+      return this.history.some((h) => h.trim() === c);
+    }
+
+    ranStarts(prefix) {
+      return this.history.some((h) => h.trim().indexOf(prefix) === 0);
+    }
+
+    /* ---------- filesystem mutations ---------- */
+
+    ensureParent(parts, createMissing) {
+      const parent = parentNode(this.root, parts);
+      if (!parent || parent.type !== 'dir') {
+        if (!createMissing) return null;
+        // create intermediate dirs (used by mkdir -p)
+        let cur = this.root;
+        for (let i = 0; i < parts.length - 1; i++) {
+          const seg = parts[i];
+          if (!cur.children[seg]) cur.children[seg] = { type: 'dir', name: seg, children: {}, mode: '755' };
+          cur = cur.children[seg];
+          if (cur.type !== 'dir') return null;
+        }
+        return cur;
+      }
+      return parent;
+    }
+
+    makeDir(parts, createMissing) {
+      const name = parts[parts.length - 1];
+      const parent = this.ensureParent(parts, createMissing);
+      if (!parent) return false;
+      if (!createMissing && parent.children[name]) return false;
+      if (!parent.children[name]) parent.children[name] = { type: 'dir', name: name, children: {}, mode: '755' };
+      return parent.children[name].type === 'dir';
+    }
+
+    makeFile(parts, content) {
+      const name = parts[parts.length - 1];
+      const parent = this.ensureParent(parts, false);
+      if (!parent || parent.type !== 'dir') return false;
+      if (parent.children[name] && parent.children[name].type === 'dir') return false;
+      if (!parent.children[name]) {
+        parent.children[name] = { type: 'file', name: name, content: '', mode: '644' };
+      }
+      if (content != null) parent.children[name].content = content;
+      return true;
+    }
+
+    remove(parts, recursive) {
+      const node = this.nodeAt(parts);
+      if (!node) return { ok: false, reason: 'no such file or directory' };
+      if (node.type === 'dir' && Object.keys(node.children).length && !recursive) {
+        return { ok: false, reason: 'is a directory (use -r)' };
+      }
+      const parent = parentNode(this.root, parts);
+      if (!parent) return { ok: false, reason: 'cannot remove root' };
+      delete parent.children[node.name];
+      return { ok: true };
+    }
+
+    copy(srcParts, dstParts, recursive) {
+      const src = this.nodeAt(srcParts);
+      if (!src) return { ok: false, reason: 'source not found' };
+      let target = this.nodeAt(dstParts);
+      if (target && target.type === 'dir') {
+        target = this.nodeAt(dstParts.concat([src.name]));
+      }
+      const tp = target ? dstParts.concat([src.name]) : dstParts;
+      if (src.type === 'dir') {
+        if (!recursive) return { ok: false, reason: 'omitting directory (use -r)' };
+        if (!this.makeDir(tp, true)) return { ok: false, reason: 'cannot create directory' };
+        const srcDir = src;
+        const dstDir = this.nodeAt(tp);
+        for (const k of Object.keys(srcDir.children)) {
+          const child = srcDir.children[k];
+          if (child.type === 'file') dstDir.children[k] = { type: 'file', name: k, content: child.content, mode: child.mode };
+          else {
+            const sub = tp.concat([k]);
+            this.makeDir(sub, true);
+            // shallow recursive copy
+            this.copy(srcParts.concat([k]), sub, true);
+          }
+        }
+        return { ok: true };
+      }
+      const parent = parentNode(this.root, tp);
+      if (!parent || parent.type !== 'dir') return { ok: false, reason: 'destination not found' };
+      parent.children[tp[tp.length - 1]] = { type: 'file', name: tp[tp.length - 1], content: src.content, mode: src.mode };
+      return { ok: true };
+    }
+
+    /* ---------- command runner ---------- */
+
+    run(input) {
+      const raw = String(input == null ? '' : input).trim();
+      if (!raw) return [];
+      this.history.push(raw);
+      if (raw === 'clear' || raw === 'cls') return [{ clear: true }];
+
+      // Tokenize on whitespace (good enough for a teaching shell). Keep quotes
+      // together so `echo "hello world"` works.
+      const tokens = tokenize(raw);
+      if (!tokens.length) return [];
+      const cmd = tokens[0];
+      const args = tokens.slice(1);
+      const flags = args.filter((a) => a.startsWith('-') && a !== '-');
+      const positional = args.filter((a) => !a.startsWith('-'));
+      const has = (f) => flags.some((x) => x.indexOf(f) !== -1);
+
+      switch (cmd) {
+        case 'help': return this.cmdHelp(positional[0]);
+        case 'man': return this.cmdHelp(positional[0]);
+        case 'pwd': return [line(this.cwd())];
+        case 'whoami': return [line(this.user)];
+        case 'date': return [line(new Date().toString())];
+        case 'history': return this.history.map((h, i) => line('  ' + (i + 1) + '  ' + h));
+        case 'echo': return this.cmdEcho(args);
+        case 'cd': return this.cmdCd(positional[0]);
+        case 'ls': return this.cmdLs(flags, positional);
+        case 'cat': return this.cmdCat(positional);
+        case 'touch': return this.cmdTouch(positional);
+        case 'mkdir': return this.cmdMkdir(has('p'), positional);
+        case 'rm': return this.cmdRm(has('r') || has('R') || has('f'), positional);
+        case 'cp': return this.cmdCp(has('r') || has('R'), positional);
+        case 'mv': return this.cmdMv(positional);
+        case 'grep': return this.cmdGrep(flags, positional);
+        case 'head': return this.cmdHeadTail('head', flags, positional, args);
+        case 'tail': return this.cmdHeadTail('tail', flags, positional, args);
+        case 'wc': return this.cmdWc(flags, positional);
+        case 'sort': return this.cmdSort(flags, positional);
+        case 'chmod': return this.cmdChmod(positional);
+        case 'chown': return this.cmdChown(positional);
+        case 'ssh': return this.cmdSsh(positional);
+        case 'ssh-keygen': return this.cmdKeygen();
+        case 'scp': return this.cmdScp(positional);
+        case 'ps': return this.cmdPs(flags);
+        case 'kill': return this.cmdKill(positional);
+        case 'bash':
+        case 'sh':
+          return this.cmdScript(positional[0]);
+        case 'clear': return [{ clear: true }];
+        case 'exit': return [line('(this is a simulation — there is no real shell to exit)', 'muted')];
+        default:
+          return [line(cmd + ': command not found', 'err')];
+      }
+    }
+
+    /* ---------- individual commands ---------- */
+
+    cmdHelp(topic) {
+      if (topic && COMMAND_HELP[topic]) {
+        return [line(COMMAND_HELP[topic], 'info')];
+      }
+      if (topic) return [line('No help for: ' + topic, 'err')];
+      const names = Object.keys(COMMAND_HELP).sort();
+      const out = [line('Available commands:', 'accent')];
+      for (let i = 0; i < names.length; i += 4) {
+        out.push(line('  ' + names.slice(i, i + 4).map((n) => n.padEnd(14)).join('')));
+      }
+      out.push(line(''));
+      out.push(line('Tip: type `man <command>` for details.', 'muted'));
+      return out;
+    }
+
+    cmdEcho(args) {
+      // Detect redirection: echo text > file  /  echo text >> file
+      let redirectIdx = -1;
+      let append = false;
+      for (let i = 0; i < args.length; i++) {
+        if (args[i] === '>') { redirectIdx = i; append = false; break; }
+        if (args[i] === '>>') { redirectIdx = i; append = true; break; }
+      }
+      const isWhole = args[0] === '>>' || args[0] === '>';
+      const textArgs = isWhole ? [] : args.slice(0, redirectIdx === -1 ? args.length : redirectIdx);
+      let text = textArgs.join(' ');
+      if (textArgs[0] === '-n') text = textArgs.slice(1).join(' ');
+      if (redirectIdx !== -1 || isWhole) {
+        const fileArg = isWhole ? args[1] : args[redirectIdx + 1];
+        if (!fileArg) return [line('echo: missing filename after redirection', 'err')];
+        const parts = this.resolve(fileArg);
+        const old = append ? (this.content(fileArg) || '') : '';
+        if (!this.makeFile(parts, old + text + '\n')) return [line('echo: cannot write to ' + fileArg, 'err')];
+        return [];
+      }
+      return [line(text)];
+    }
+
+    cmdCd(arg) {
+      const target = !arg || arg === '~' ? this.home : this.resolve(arg);
+      const node = this.nodeAt(target);
+      if (!node) return [line('cd: ' + arg + ': No such file or directory', 'err')];
+      if (node.type !== 'dir') return [line('cd: ' + arg + ': Not a directory', 'err')];
+      this.cwdParts = target;
+      return [];
+    }
+
+    cmdLs(flags, positional) {
+      const long = flags.some((f) => f.indexOf('l') !== -1);
+      const all = flags.some((f) => f.indexOf('a') !== -1);
+      const target = positional[0] || '.';
+      const parts = this.resolve(target);
+      const node = this.nodeAt(parts);
+      if (!node) return [line('ls: cannot access ' + target + ': No such file or directory', 'err')];
+      if (node.type === 'file') return [line(node.name)];
+      let names = Object.keys(node.children);
+      if (!all) names = names.filter((n) => !n.startsWith('.'));
+      names.sort();
+      if (!names.length) return [];
+      if (long) {
+        const out = [];
+        out.push(line('total ' + names.length, 'muted'));
+        for (const name of names) {
+          const child = node.children[name];
+          const dir = child.type === 'dir';
+          const mode = child.mode || defaultMode(child);
+          const size = dir ? Object.keys(child.children).length : child.content.length;
+          const typeChar = dir ? 'd' : '-';
+          const perms = modeToSymbols(mode);
+          out.push(line(
+            typeChar + perms + '  ' + this.user + ' ' + this.user + ' ' +
+            String(size).padStart(4) + ' Jan  1  ' + name,
+            dir ? 'dir' : 'out'
+          ));
+        }
+        return out;
+      }
+      return [line(names.map((n) => (node.children[n].type === 'dir' ? n + '/' : n)).join('   '))];
+    }
+
+    cmdCat(positional) {
+      if (!positional.length) return [line('cat: missing file operand', 'err')];
+      const out = [];
+      for (const f of positional) {
+        const parts = this.resolve(f);
+        const node = this.nodeAt(parts);
+        if (!node) { out.push(line('cat: ' + f + ': No such file or directory', 'err')); continue; }
+        if (node.type === 'dir') { out.push(line('cat: ' + f + ': Is a directory', 'err')); continue; }
+        if (node.content) {
+          node.content.replace(/\n$/, '').split('\n').forEach((l) => out.push(line(l)));
+        }
+      }
+      return out;
+    }
+
+    cmdTouch(positional) {
+      if (!positional.length) return [line('touch: missing file operand', 'err')];
+      const out = [];
+      for (const f of positional) {
+        const parts = this.resolve(f);
+        const existing = this.nodeAt(parts);
+        if (existing && existing.type === 'dir') { out.push(line('touch: ' + f + ': Is a directory', 'err')); continue; }
+        if (!existing && !this.makeFile(parts, '')) out.push(line('touch: cannot create ' + f, 'err'));
+      }
+      return out;
+    }
+
+    cmdMkdir(parentFlag, positional) {
+      if (!positional.length) return [line('mkdir: missing operand', 'err')];
+      const out = [];
+      for (const d of positional) {
+        const parts = this.resolve(d);
+        const existing = this.nodeAt(parts);
+        if (existing) {
+          if (!parentFlag) out.push(line('mkdir: cannot create directory ' + d + ': File exists', 'err'));
+          continue;
+        }
+        if (!this.makeDir(parts, parentFlag)) out.push(line('mkdir: cannot create directory ' + d, 'err'));
+      }
+      return out;
+    }
+
+    cmdRm(recursive, positional) {
+      if (!positional.length) return [line('rm: missing operand', 'err')];
+      const out = [];
+      for (const f of positional) {
+        const res = this.remove(this.resolve(f), recursive);
+        if (!res.ok) out.push(line('rm: cannot remove ' + f + ': ' + res.reason, 'err'));
+      }
+      return out;
+    }
+
+    cmdCp(recursive, positional) {
+      if (positional.length < 2) return [line('cp: missing destination file operand', 'err')];
+      const src = positional[0], dst = positional[positional.length - 1];
+      const res = this.copy(this.resolve(src), this.resolve(dst), recursive);
+      return res.ok ? [] : [line('cp: ' + res.reason, 'err')];
+    }
+
+    cmdMv(positional) {
+      if (positional.length < 2) return [line('mv: missing destination file operand', 'err')];
+      const src = positional[0], dst = positional[positional.length - 1];
+      const srcParts = this.resolve(src);
+      const node = this.nodeAt(srcParts);
+      if (!node) return [line('mv: cannot stat ' + src + ': No such file or directory', 'err')];
+      const dstParts = this.resolve(dst);
+      const dstNode = this.nodeAt(dstParts);
+      let finalParts = dstParts;
+      if (dstNode && dstNode.type === 'dir') finalParts = dstParts.concat([node.name]);
+      const res = this.copy(srcParts, finalParts, true);
+      if (!res.ok) return [line('mv: ' + res.reason, 'err')];
+      this.remove(srcParts, true);
+      return [];
+    }
+
+    cmdGrep(flags, positional) {
+      const ignoreCase = flags.some((f) => f.indexOf('i') !== -1);
+      const showNum = flags.some((f) => f.indexOf('n') !== -1);
+      if (positional.length < 2) return [line('grep: usage: grep [options] PATTERN FILE...', 'err')];
+      const pattern = positional[0];
+      const files = positional.slice(1);
+      const out = [];
+      const needle = ignoreCase ? pattern.toLowerCase() : pattern;
+      for (const f of files) {
+        const node = this.nodeAt(this.resolve(f));
+        if (!node || node.type !== 'file') { out.push(line('grep: ' + f + ': No such file', 'err')); continue; }
+        const lines = node.content.split('\n');
+        lines.forEach((l, i) => {
+          const hay = ignoreCase ? l.toLowerCase() : l;
+          if (hay.indexOf(needle) !== -1) {
+            out.push(line(showNum ? (i + 1) + ':' + l : l, 'match'));
+          }
+        });
+      }
+      return out;
+    }
+
+    cmdHeadTail(which, flags, positional, args) {
+      if (!positional.length) return [line(which + ': missing file operand', 'err')];
+      let n = 10;
+      const all = args || flags;
+      for (let i = 0; i < all.length; i++) {
+        if (all[i] === '-n' && i + 1 < all.length) { n = parseInt(all[i + 1], 10); break; }
+        const m = /^n(\d+)$/.exec(all[i]);
+        if (m) n = parseInt(m[1], 10);
+      }
+      const f = positional[positional.length - 1];
+      const node = this.nodeAt(this.resolve(f));
+      if (!node || node.type !== 'file') return [line(which + ': ' + f + ': No such file', 'err')];
+      const lines = node.content.split('\n').filter((l, i, a) => !(i === a.length - 1 && l === ''));
+      const chosen = which === 'head' ? lines.slice(0, n) : lines.slice(-n);
+      return chosen.map((l) => line(l));
+    }
+
+    cmdWc(flags, positional) {
+      if (!positional.length) return [line('wc: missing file operand', 'err')];
+      const showL = flags.some((f) => f.indexOf('l') !== -1);
+      const showW = flags.some((f) => f.indexOf('w') !== -1);
+      const showC = flags.some((f) => f.indexOf('c') !== -1);
+      const any = showL || showW || showC;
+      const out = [];
+      for (const f of positional) {
+        const node = this.nodeAt(this.resolve(f));
+        if (!node || node.type !== 'file') { out.push(line('wc: ' + f + ': No such file', 'err')); continue; }
+        const content = node.content;
+        const l = content ? content.split('\n').length - (content.endsWith('\n') ? 1 : 0) : 0;
+        const w = content.trim() ? content.trim().split(/\s+/).length : 0;
+        const c = content.length;
+        const parts = [];
+        if (!any || showL) parts.push(l);
+        if (!any || showW) parts.push(w);
+        if (!any || showC) parts.push(c);
+        out.push(line(parts.map((x) => String(x).padStart(6)).join(' ') + '  ' + f));
+      }
+      return out;
+    }
+
+    cmdSort(flags, positional) {
+      if (!positional.length) return [line('sort: missing file operand', 'err')];
+      const reverse = flags.some((f) => f.indexOf('r') !== -1);
+      const f = positional[positional.length - 1];
+      const node = this.nodeAt(this.resolve(f));
+      if (!node || node.type !== 'file') return [line('sort: ' + f + ': No such file', 'err')];
+      let lines = node.content.split('\n').filter((l) => l.length);
+      lines.sort();
+      if (reverse) lines.reverse();
+      return lines.map((l) => line(l));
+    }
+
+    cmdChmod(positional) {
+      if (positional.length < 2) return [line('chmod: usage: chmod MODE FILE...', 'err')];
+      const modeArg = positional[0];
+      let numeric = /^[0-7]{3}$/.exec(modeArg);
+      const out = [];
+      for (const f of positional.slice(1)) {
+        const parts = this.resolve(f);
+        const node = this.nodeAt(parts);
+        if (!node) { out.push(line('chmod: ' + f + ': No such file', 'err')); continue; }
+        let mode = node.mode || defaultMode(node);
+        if (numeric) {
+          mode = modeArg;
+        } else {
+          // simple symbolic: +x, -x, +r, +w, a+x, u+x, etc.
+          const m = /^([ugoa]*)([+-])([rwx]+)$/.exec(modeArg);
+          if (!m) { out.push(line('chmod: invalid mode: ' + modeArg, 'err')); continue; }
+          const digits = mode.split('').map((d) => parseInt(d, 8));
+          let which = m[1] || 'a';
+          const add = m[2] === '+';
+          const perms = m[3];
+          const idxs = [];
+          if (which.indexOf('u') !== -1 || which.indexOf('a') !== -1) idxs.push(0);
+          if (which.indexOf('g') !== -1 || which.indexOf('a') !== -1) idxs.push(1);
+          if (which.indexOf('o') !== -1 || which.indexOf('a') !== -1) idxs.push(2);
+          for (const p of perms) {
+            const bit = p === 'r' ? 4 : p === 'w' ? 2 : 1;
+            for (const i of idxs) digits[i] = add ? (digits[i] | bit) : (digits[i] & ~bit);
+          }
+          mode = digits.join('');
+        }
+        node.mode = mode;
+      }
+      return out;
+    }
+
+    cmdChown(positional) {
+      if (positional.length < 2) return [line('chown: usage: chown USER:GROUP FILE...', 'err')];
+      // Ownership is simulated only; record it for realism.
+      const out = [];
+      for (const f of positional.slice(1)) {
+        if (!this.exists(f)) out.push(line('chown: ' + f + ': No such file', 'err'));
+      }
+      return out;
+    }
+
+    cmdSsh(positional) {
+      if (!positional.length) return [line('usage: ssh user@host', 'err')];
+      const dest = positional[0];
+      return [
+        line('Connecting to ' + dest + '...', 'muted'),
+        line('Welcome to Ubuntu (simulated remote session)', 'info'),
+        line("Type 'exit' to return to your local machine.", 'muted'),
+      ];
+    }
+
+    cmdKeygen() {
+      const sshDir = this.resolve('~/.ssh');
+      if (!this.nodeAt(sshDir)) this.makeDir(sshDir, true);
+      this.makeFile(this.resolve('~/.ssh/id_rsa'), '-----BEGIN PRIVATE KEY-----\n(simulated)\n-----END PRIVATE KEY-----\n');
+      this.makeFile(this.resolve('~/.ssh/id_rsa.pub'), 'ssh-rsa AAAA... learner@linux-dojo\n');
+      return [line('Generated public/private RSA key pair.', 'info'), line('Your identification has been saved in ~/.ssh/id_rsa', 'muted')];
+    }
+
+    cmdScript(file) {
+      if (!file) return [line('bash: missing script file', 'err')];
+      const node = this.nodeAt(this.resolve(file));
+      if (!node || node.type !== 'file') return [line('bash: ' + file + ': No such file', 'err')];
+      return [
+        line('(simulation) Would run: bash ' + file, 'muted'),
+        line(node.content.replace(/\n$/, '') || '(empty script)'),
+      ];
+    }
+
+    cmdScp(positional) {
+      if (positional.length < 2) return [line('usage: scp <source> <user@host:destination>', 'err')];
+      return [
+        line('Copying ' + positional[0] + ' -> ' + positional[1] + ' ...', 'muted'),
+        line('100%  (simulated transfer complete)', 'info'),
+      ];
+    }
+
+    cmdPs(flags) {
+      const full = flags.some((f) => f.indexOf('f') !== -1);
+      const procs = [
+        ['PID', 'TTY', 'STAT', 'COMMAND'],
+        ['1', '?', 'Ss', '/sbin/init'],
+        ['142', 'pts/0', 'Ss', 'bash'],
+        ['318', 'pts/0', 'R+', 'ps ' + (full ? '-ef' : 'aux')],
+        ['204', '?', 'S', 'sshd: learner@pts/0'],
+      ];
+      return procs.map((p) => line(p.map((x) => x.padEnd(8)).join(' '), p[0] === 'PID' ? 'accent' : 'out'));
+    }
+
+    cmdKill(positional) {
+      if (!positional.length) return [line('kill: usage: kill [-SIGNAL] PID', 'err')];
+      return [line('Sent SIGTERM to process ' + positional[positional.length - 1] + ' (simulated).', 'info')];
+    }
+  }
+
+  /* ---------- utilities ---------- */
+
+  function tokenize(raw) {
+    const out = [];
+    let cur = '';
+    let quote = null;
+    for (let i = 0; i < raw.length; i++) {
+      const ch = raw[i];
+      if (quote) {
+        if (ch === quote) quote = null;
+        else cur += ch;
+      } else if (ch === '"' || ch === "'") {
+        quote = ch;
+      } else if (/\s/.test(ch)) {
+        if (cur) { out.push(cur); cur = ''; }
+      } else {
+        cur += ch;
+      }
+    }
+    if (cur) out.push(cur);
+    return out;
+  }
+
+  function modeToSymbols(mode) {
+    const bits = String(mode).split('').map((d) => parseInt(d, 10));
+    let s = '';
+    for (const b of bits) {
+      s += (b & 4 ? 'r' : '-') + (b & 2 ? 'w' : '-') + (b & 1 ? 'x' : '-');
+    }
+    return s;
+  }
+
+  const COMMAND_HELP = {
+    help: 'help [command] — list commands, or explain one.',
+    man: 'man <command> — show the manual for a command.',
+    pwd: 'pwd — print the current working directory.',
+    ls: 'ls [-l] [-a] [path] — list directory contents. -l = details, -a = include hidden.',
+    cd: 'cd [path] — change directory. Use cd ~ to go home, cd .. to go up.',
+    cat: 'cat <file>... — print file contents.',
+    echo: 'echo [text] [> file | >> file] — print text; redirect to create/append a file.',
+    touch: 'touch <file>... — create empty files.',
+    mkdir: 'mkdir [-p] <dir>... — create directories. -p creates parents.',
+    rm: 'rm [-r] <path>... — remove files. -r removes directories recursively.',
+    cp: 'cp [-r] <src> <dest> — copy files. -r copies directories.',
+    mv: 'mv <src> <dest> — move or rename files/directories.',
+    grep: 'grep [-i] [-n] <pattern> <file>... — search text. -i ignore case, -n line numbers.',
+    head: 'head [-n N] <file> — show the first N lines (default 10).',
+    tail: 'tail [-n N] <file> — show the last N lines (default 10).',
+    wc: 'wc [-l|-w|-c] <file> — count lines, words, characters.',
+    sort: 'sort [-r] <file> — sort lines alphabetically. -r reverses.',
+    chmod: 'chmod <mode> <file> — change permissions, e.g. 755 or u+x.',
+    chown: 'chown USER:GROUP <file> — change ownership (simulated).',
+    whoami: 'whoami — print your username.',
+    date: 'date — print the current date and time.',
+    history: 'history — show commands you have run.',
+    ssh: 'ssh user@host — open a simulated remote shell.',
+    'ssh-keygen': 'ssh-keygen — generate a simulated SSH key pair in ~/.ssh.',
+    bash: 'bash <script.sh> — run a shell script (simulated).',
+    ps: 'ps [-ef] — list running processes.',
+    kill: 'kill [-SIGNAL] <PID> — send a signal to a process.',
+    scp: 'scp <src> user@host:<dest> — copy files over SSH (simulated).',
+    clear: 'clear — clear the terminal screen.',
+  };
+
+  NS.Shell = Shell;
+  NS.buildFS = buildFS;
+  NS.COMMAND_HELP = COMMAND_HELP;
+})(window);
+
+</script>
+  <script>
+/*
+ * lessons.js — all course content lives here.
+ *
+ * To add a lesson: copy an existing lesson object into a module's `lessons`
+ * array. Each lesson has:
+ *   id, title, xp, content (HTML), optional task {description, hint, check},
+ *   optional terminal {fs, cwd}, and optional quiz [{q, options, answer, why}].
+ *
+ * `check` receives the Shell instance (see terminal.js) and must return
+ * { pass: bool, message: string }.
+ */
+(function (global) {
+  'use strict';
+  const NS = (global.LinuxDojo = global.LinuxDojo || {});
+
+  /* ---------- checker helpers ---------- */
+  const ran = (s, c) => s.ran(c);
+  const ranAny = (s, arr) => arr.some((c) => s.ran(c));
+  const started = (s, p) => s.ranStarts(p);
+  const exists = (s, p) => s.exists(p);
+  const gone = (s, p) => !s.exists(p);
+  const text = (s, p) => s.content(p) || '';
+  const modeOf = (s, p) => s.mode(p) || '';
+  const ok = (message) => ({ pass: true, message: message });
+  const wait = (message) => ({ pass: false, message: message });
+
+  const DEFAULT_FS = {
+    home: {
+      learner: {
+        '.bashrc': '# ~/.bashrc\nalias ll="ls -la"\n',
+        'notes.txt': 'Linux is fun\nLearn a command a day\nPractice makes permanent\n',
+        projects: {
+          'readme.md': '# My project\nA place to build things.\n',
+        },
+      },
+    },
+    etc: { hosts: '127.0.0.1 localhost\n::1 localhost\n' },
+    var: { log: { 'syslog': 'Jan  1 00:00:00 host kernel: boot\n' } },
+  };
+
+  const COURSE = {
+    title: 'Linux Dojo',
+    tagline: 'Learn Linux by doing — one command at a time.',
+    modules: [
+      /* ============================ 1. FOUNDATIONS ============================ */
+      {
+        id: 'foundations',
+        title: 'Foundations',
+        icon: '⌘',
+        description: 'The shell, your prompt, paths, and where to get help.',
+        lessons: [
+          {
+            id: 'hello-shell',
+            title: 'Meet the Shell',
+            xp: 20,
+            content: `
+              <p>A <strong>shell</strong> is a program that reads your commands and runs them. The one you'll use most is <code>bash</code> (the <em>Bourne Again SHell</em>). The prompt you see — something like <code>learner@linux-dojo:~$</code> — tells you who you are, which machine you're on, and where you are.</p>
+              <p>The tilde <code>~</code> means your <strong>home directory</strong>, your personal workspace. Let's look around. Try these commands in the terminal below:</p>
+              <ul>
+                <li><code>pwd</code> — print working directory (where am I?)</li>
+                <li><code>ls</code> — list files here</li>
+                <li><code>whoami</code> — print your username</li>
+                <li><code>help</code> — list all commands in this dojo</li>
+              </ul>
+              <p class="tip">Very important: commands are case-sensitive, and <code>Tab</code> completion is your best friend in a real terminal — start typing and press Tab.</p>`,
+            terminal: { fs: DEFAULT_FS, cwd: '/home/learner' },
+            task: {
+              description: 'Run <code>pwd</code>, <code>ls</code>, <code>whoami</code>, and <code>help</code> at least once.',
+              hint: 'Type each command and press Enter. Use ↑ to repeat a previous command.',
+              check: (s) => ranAny(s, ['pwd', 'ls', 'whoami', 'help']) &&
+                ran(s, 'pwd') && ran(s, 'whoami') && ran(s, 'help')
+                ? ok('You know where you are. Onward!')
+                : wait('Run pwd, whoami and help (ls too) to complete this task.'),
+            },
+            quiz: [
+              {
+                q: 'What does the shell do?',
+                options: ['Draws windows and icons', 'Interprets the commands you type and runs them', 'Stores your files permanently', 'Connects you to the internet'],
+                answer: 1,
+                why: 'A shell is a command-line interpreter: it reads commands and launches programs.',
+              },
+              {
+                q: 'What does ~ mean in a path?',
+                options: ['The root directory', 'The current directory', 'Your home directory', 'A hidden file'],
+                answer: 2,
+                why: '~ is shorthand for your home directory, e.g. /home/learner.',
+              },
+            ],
+          },
+          {
+            id: 'paths-cd',
+            title: 'Paths & cd',
+            xp: 25,
+            content: `
+              <p>Everything in Linux is a file or directory in one big tree starting at <code>/</code> (the <strong>root</strong>). A <strong>path</strong> describes a location:</p>
+              <ul>
+                <li><strong>Absolute</strong> paths start at root: <code>/home/learner/projects</code></li>
+                <li><strong>Relative</strong> paths start where you are: <code>projects/readme.md</code></li>
+                <li><code>.</code> means <em>here</em>, <code>..</code> means <em>parent</em></li>
+                <li><code>~</code> means <em>home</em></li>
+              </ul>
+              <p>Use <code>cd</code> to move around and <code>pwd</code> to check where you ended up. Try: <code>cd projects</code>, then <code>pwd</code>, then <code>cd ..</code>, then <code>cd ~</code>.</p>`,
+            terminal: { fs: DEFAULT_FS, cwd: '/home/learner' },
+            task: {
+              description: 'Visit <code>projects</code>, go back up with <code>cd ..</code>, then return home with <code>cd ~</code>.',
+              hint: 'Order matters: cd projects → cd .. → cd ~',
+              check: (s) => ran(s, 'cd projects') && ran(s, 'cd ..') && ran(s, 'cd ~') && s.cwd() === '/home/learner'
+                ? ok('You can navigate the tree.')
+                : wait('Run cd projects, then cd .., then cd ~.'),
+            },
+            quiz: [
+              {
+                q: 'You are in /home/learner. Where does cd .. take you?',
+                options: ['/home', '/', '/root', '/home/learner/projects'],
+                answer: 0,
+                why: '.. moves one level up, from /home/learner to /home.',
+              },
+              {
+                q: 'Which is an absolute path?',
+                options: ['projects/readme.md', './notes.txt', '../notes.txt', '/etc/hosts'],
+                answer: 3,
+                why: 'Absolute paths begin with /, the root of the filesystem.',
+              },
+            ],
+          },
+          {
+            id: 'man-help',
+            title: 'Getting Help',
+            xp: 15,
+            content: `
+              <p>You don't need to memorize every command or flag. Real Linux systems ship with <strong>man pages</strong> (manual pages). Type <code>man ls</code> to read about <code>ls</code>, including all its options.</p>
+              <p>In this dojo, <code>man &lt;command&gt;</code> and <code>help &lt;command&gt;</code> both show a short description. Try <code>man grep</code> and <code>help</code>.</p>
+              <p class="tip">In real man pages: press <code>q</code> to quit, <code>/word</code> to search, and arrow keys to scroll. The convention <code>command --help</code> also works for most programs.</p>`,
+            terminal: { fs: DEFAULT_FS, cwd: '/home/learner' },
+            task: {
+              description: 'Open the manual for <code>grep</code> with <code>man grep</code>.',
+              hint: 'Just type man grep and press Enter.',
+              check: (s) => ran(s, 'man grep') ? ok('Help is always one command away.') : wait('Try: man grep'),
+            },
+            quiz: [
+              {
+                q: 'What does `man ls` do?',
+                options: ['Deletes ls', 'Shows the manual page for ls', 'Lists manual files', 'Runs ls with flags'],
+                answer: 1,
+                why: 'man displays the manual page for the named command.',
+              },
+              {
+                q: 'Inside a real man page, which key quits?',
+                options: ['q', 'x', 'Esc', 'Ctrl+C'],
+                answer: 0,
+                why: 'Press q to quit the man page pager.',
+              },
+            ],
+          },
+        ],
+      },
+
+      /* ======================== 2. FILES & DIRECTORIES ======================== */
+      {
+        id: 'files',
+        title: 'Files & Directories',
+        icon: '▤',
+        description: 'Create, copy, move, remove, and write files.',
+        lessons: [
+          {
+            id: 'touch-mkdir',
+            title: 'touch & mkdir',
+            xp: 20,
+            content: `
+              <p><code>touch</code> creates empty files (or updates their timestamp). <code>mkdir</code> makes directories. Use <code>mkdir -p</code> to create a whole chain of parent directories at once — handy and safe.</p>
+              <pre>mkdir drafts
+touch drafts/idea.txt
+mkdir -p work/2026/notes</pre>
+              <p>See your creations with <code>ls</code> and <code>ls -l</code>.</p>`,
+            terminal: { fs: DEFAULT_FS, cwd: '/home/learner' },
+            task: {
+              description: 'Create a file <code>todo.txt</code> and a directory <code>archive</code> inside your home.',
+              hint: 'touch todo.txt  then  mkdir archive',
+              check: (s) => exists(s, 'todo.txt') && exists(s, 'archive') && s.node('archive').type === 'dir'
+                ? ok('Files and folders created.')
+                : wait('Create todo.txt (touch) and an archive directory (mkdir).'),
+            },
+            quiz: [
+              {
+                q: 'Which command creates an empty file?',
+                options: ['mkdir', 'touch', 'cat', 'pwd'],
+                answer: 1,
+                why: 'touch creates empty files; mkdir creates directories.',
+              },
+              {
+                q: 'What does mkdir -p do?',
+                options: ['Prompts for confirmation', 'Creates missing parent directories', 'Makes a private directory', 'Prints the directory'],
+                answer: 1,
+                why: '-p creates parent directories as needed and doesn\'t error if the directory exists.',
+              },
+            ],
+          },
+          {
+            id: 'cp-mv-rm',
+            title: 'cp, mv & rm',
+            xp: 25,
+            content: `
+              <p><code>cp</code> copies, <code>mv</code> moves or renames, and <code>rm</code> removes. Directories need <code>-r</code> (recursive) for <code>cp</code> and <code>rm</code>.</p>
+              <pre>cp notes.txt notes-backup.txt
+mv todo.txt tasks.txt
+rm notes-backup.txt
+rm -r old-folder</pre>
+              <p class="warning">There is no Recycle Bin in a shell. <code>rm</code> is permanent — double-check before you press Enter, especially with wildcards like <code>rm *.txt</code>.</p>`,
+            terminal: { fs: { home: { learner: { 'notes.txt': 'hello\n', 'todo.txt': 'buy milk\n' } } }, cwd: '/home/learner' },
+            task: {
+              description: 'Copy <code>notes.txt</code> to <code>copy.txt</code>, rename <code>todo.txt</code> to <code>done.txt</code>, then delete <code>copy.txt</code>.',
+              hint: 'cp notes.txt copy.txt → mv todo.txt done.txt → rm copy.txt',
+              check: (s) => gone(s, 'copy.txt') && exists(s, 'done.txt') && gone(s, 'todo.txt') &&
+                ranAny(s, ['cp notes.txt copy.txt']) && ran(s, 'mv todo.txt done.txt')
+                ? ok('Copy, move, remove — the file lifecycle.')
+                : wait('Copy notes.txt to copy.txt, rename todo.txt to done.txt, and remove copy.txt.'),
+            },
+            quiz: [
+              {
+                q: 'To copy a directory you need:',
+                options: ['cp -r', 'mv -r', 'rm -r', 'ls -r'],
+                answer: 0,
+                why: 'cp -r copies directories recursively.',
+              },
+              {
+                q: 'Which command renames a file?',
+                options: ['cp', 'mv', 'ren', 'touch'],
+                answer: 1,
+                why: 'mv moves a file; moving it to a new name in the same directory renames it.',
+              },
+            ],
+          },
+          {
+            id: 'cat-echo-redirect',
+            title: 'cat, echo & Redirection',
+            xp: 25,
+            content: `
+              <p><code>cat</code> prints a file's contents. <code>echo</code> prints text. With <code>&gt;</code> you can send output <em>into</em> a file (creating or overwriting it); with <code>&gt;&gt;</code> you <em>append</em> instead.</p>
+              <pre>echo "Hello Linux" > greeting.txt   # create/overwrite
+echo "Second line" >> greeting.txt  # append
+cat greeting.txt</pre>
+              <p>This <strong>redirection</strong> is one of the superpowers of the shell: the output of one command becomes the input of a file (or another command).</p>`,
+            terminal: { fs: { home: { learner: {} } }, cwd: '/home/learner' },
+            task: {
+              description: 'Create <code>story.txt</code> containing the line <code>Hello</code>, then append <code>World</code> as a second line. Check with <code>cat story.txt</code>.',
+              hint: 'echo Hello > story.txt  then  echo World >> story.txt',
+              check: (s) => {
+                const c = text(s, 'story.txt');
+                return c.indexOf('Hello') !== -1 && c.indexOf('World') !== -1 && c.indexOf('Hello') < c.indexOf('World')
+                  ? ok('You redirected output like a pro.')
+                  : wait('Write "Hello" to story.txt with > and append "World" with >>.');
+              },
+            },
+            quiz: [
+              {
+                q: 'What does >> do?',
+                options: ['Overwrite a file', 'Append output to a file', 'Delete a file', 'Read a file backwards'],
+                answer: 1,
+                why: '>> appends; > overwrites (creates a fresh file).',
+              },
+              {
+                q: 'Which command prints a file to the screen?',
+                options: ['cat', 'touch', 'mkdir', 'cd'],
+                answer: 0,
+                why: 'cat concatenates and prints file contents.',
+              },
+            ],
+          },
+        ],
+      },
+
+      /* ========================== 3. TEXT & PIPES ========================== */
+      {
+        id: 'text',
+        title: 'Text & Pipes',
+        icon: '≋',
+        description: 'Inspect and filter text — the Unix way.',
+        lessons: [
+          {
+            id: 'head-tail-wc',
+            title: 'head, tail & wc',
+            xp: 20,
+            content: `
+              <p>Log files can be huge. <code>head</code> shows the first lines, <code>tail</code> the last lines, and <code>wc</code> counts lines (<code>-l</code>), words (<code>-w</code>) or characters (<code>-c</code>).</p>
+              <pre>head -n 2 notes.txt
+tail -n 1 notes.txt
+wc -l notes.txt</pre>
+              <p class="tip">A classic trick: <code>tail -f logfile</code> follows a log as it grows — perfect for watching what a server is doing in real time.</p>`,
+            terminal: { fs: DEFAULT_FS, cwd: '/home/learner' },
+            task: {
+              description: 'Using <code>notes.txt</code>: show its first 2 lines, its last line, and count its lines.',
+              hint: 'head -n 2 notes.txt → tail -n 1 notes.txt → wc -l notes.txt',
+              check: (s) => ranAny(s, ['head -n 2 notes.txt']) && ranAny(s, ['tail -n 1 notes.txt']) && ran(s, 'wc -l notes.txt')
+                ? ok('You can peek inside any text file.')
+                : wait('Run head -n 2, tail -n 1, and wc -l on notes.txt.'),
+            },
+            quiz: [
+              {
+                q: 'Which option makes wc count lines?',
+                options: ['-w', '-c', '-l', '-n'],
+                answer: 2,
+                why: 'wc -l counts lines; -w counts words, -c counts characters.',
+              },
+              {
+                q: 'tail -f is useful for…',
+                options: ['Creating files', 'Following a growing log file', 'Sorting text', 'Deleting old files'],
+                answer: 1,
+                why: '-f follows the file and prints new lines as they are written.',
+              },
+            ],
+          },
+          {
+            id: 'grep',
+            title: 'grep — search text',
+            xp: 25,
+            content: `
+              <p><code>grep</code> searches for lines matching a pattern. Add <code>-i</code> to ignore case and <code>-n</code> to show line numbers. It's named after the old ed command <code>g/re/p</code> — "global / regular expression / print".</p>
+              <pre>grep Linux notes.txt
+grep -i "learn" notes.txt
+grep -n "practice" notes.txt</pre>
+              <p class="tip">grep powers countless workflows: find errors in logs, filter command output, search source code. Patterns can be sophisticated <em>regular expressions</em>.</p>`,
+            terminal: { fs: DEFAULT_FS, cwd: '/home/learner' },
+            task: {
+              description: 'Find the line containing <code>Learn</code> in <code>notes.txt</code> using <code>grep</code>.',
+              hint: 'grep Learn notes.txt',
+              check: (s) => started(s, 'grep') && ranAny(s, ['grep Learn notes.txt', 'grep -i learn notes.txt'])
+                ? ok('You found the needle in the haystack.')
+                : wait('Try: grep Learn notes.txt'),
+            },
+            quiz: [
+              {
+                q: 'What does grep -i do?',
+                options: ['Inverts the match', 'Ignores case', 'Shows line numbers', 'Counts matches'],
+                answer: 1,
+                why: '-i = case-insensitive search; -n shows line numbers; -v inverts.',
+              },
+              {
+                q: 'Which command searches text for a pattern?',
+                options: ['grep', 'sort', 'head', 'wc'],
+                answer: 0,
+                why: 'grep prints lines that match a pattern.',
+              },
+            ],
+          },
+          {
+            id: 'pipes-sort',
+            title: 'Pipes & sort',
+            xp: 25,
+            content: `
+              <p>The pipe <code>|</code> connects commands: the output of the left command becomes the input of the right one. This is the Unix philosophy — small tools that do one thing well, chained together.</p>
+              <pre>cat notes.txt | grep Linux | sort
+cat /var/log/access.log | grep ERROR | wc -l</pre>
+              <p><code>sort</code> orders lines alphabetically; <code>sort -r</code> reverses, <code>sort -u</code> removes duplicates. Practice sort on its own below — and remember that in a real shell you could pipe into it.</p>
+              <p class="tip">Pipes work with any commands that write to standard output. There's no limit to how many you chain.</p>`,
+            terminal: { fs: { home: { learner: { 'names.txt': 'Zoe\nAdam\nMaya\nBen\n' } } }, cwd: '/home/learner' },
+            task: {
+              description: 'Sort <code>names.txt</code> and then count its lines with <code>wc -l</code>.',
+              hint: 'sort names.txt → wc -l names.txt',
+              check: (s) => ran(s, 'sort names.txt') && ran(s, 'wc -l names.txt')
+                ? ok('Small tools, chained together.')
+                : wait('Run sort names.txt and wc -l names.txt.'),
+            },
+            quiz: [
+              {
+                q: 'What does the | (pipe) do?',
+                options: ['Runs commands at the same time', 'Sends one command\'s output into another\'s input', 'Creates a new file', 'Pauses a command'],
+                answer: 1,
+                why: 'A pipe connects stdout of one process to stdin of the next.',
+              },
+              {
+                q: 'Which flag sorts in reverse order?',
+                options: ['-r', '-u', '-n', '-f'],
+                answer: 0,
+                why: 'sort -r reverses; -u keeps unique lines; -n sorts numerically.',
+              },
+            ],
+          },
+        ],
+      },
+
+      /* ==================== 4. PERMISSIONS & USERS ==================== */
+      {
+        id: 'permissions',
+        title: 'Permissions & Users',
+        icon: '⚿',
+        description: 'Who can read, write, and execute — and why it matters.',
+        lessons: [
+          {
+            id: 'ls-l-chmod',
+            title: 'Permissions & chmod',
+            xp: 30,
+            content: `
+              <p>Run <code>ls -l</code> and you'll see strings like <code>-rw-r--r--</code>. Read them in three groups of three: <strong>owner</strong>, <strong>group</strong>, <strong>others</strong>. Each group has <code>r</code> (read = 4), <code>w</code> (write = 2), <code>x</code> (execute = 1).</p>
+              <p>Numeric modes add those bits: <code>755</code> = owner rwx (7), group r-x (5), others r-x (5). <code>644</code> is the usual file mode. Only the owner can write (w); everyone can read (r).</p>
+              <pre>ls -l
+chmod 755 script.sh     # make it executable by everyone
+chmod u+x script.sh     # symbolic alternative
+chmod 600 secrets.txt   # only owner can read/write</pre>
+              <p class="warning">The first character is the type: <code>-</code> file, <code>d</code> directory. Directories need <code>x</code> to be entered.</p>`,
+            terminal: { fs: { home: { learner: { 'script.sh': '#!/bin/bash\necho hi\n', 'secrets.txt': 'top secret\n' } } }, cwd: '/home/learner' },
+            task: {
+              description: 'Set <code>script.sh</code> to mode <code>755</code>, then view it with <code>ls -l</code>.',
+              hint: 'chmod 755 script.sh → ls -l',
+              check: (s) => modeOf(s, 'script.sh') === '755' && ran(s, 'ls -l')
+                ? ok('You control who can do what.')
+                : wait('Run chmod 755 script.sh, then ls -l.'),
+            },
+            quiz: [
+              {
+                q: 'What does mode 644 mean for a file?',
+                options: ['Everyone can execute it', 'Owner can read/write, others read-only', 'Only owner can read', 'Nobody can access it'],
+                answer: 1,
+                why: '6 = rw for owner, 4 = r for group, 4 = r for others.',
+              },
+              {
+                q: 'Which bit allows a file to be run as a program?',
+                options: ['r', 'w', 'x', 'd'],
+                answer: 2,
+                why: 'The execute bit x (value 1) makes a file runnable.',
+              },
+            ],
+          },
+          {
+            id: 'users-sudo',
+            title: 'Users & sudo',
+            xp: 20,
+            content: `
+              <p>Linux is multi-user. <code>whoami</code> shows who you are; every file has an owner and a group. The <code>root</code> user is the all-powerful administrator.</p>
+              <p><code>sudo</code> ("superuser do") runs a command as root — but only for users allowed by <code>/etc/sudoers</code>. It prompts for <em>your</em> password, not root's.</p>
+              <pre>whoami
+sudo apt update     # run as administrator
+id                  # show your uid and groups</pre>
+              <p class="warning">With great power comes great responsibility: a mistyped sudo command can damage the system. Don't run untrusted commands with sudo.</p>`,
+            terminal: { fs: DEFAULT_FS, cwd: '/home/learner' },
+            task: {
+              description: 'Find out who you are with <code>whoami</code>.',
+              hint: 'whoami',
+              check: (s) => ran(s, 'whoami') ? ok('Identity confirmed.') : wait('Run whoami.'),
+            },
+            quiz: [
+              {
+                q: 'What does sudo do?',
+                options: ['Changes your password', 'Runs a command with administrator privileges', 'Deletes a user', 'Lists files'],
+                answer: 1,
+                why: 'sudo executes a command as another user (root by default).',
+              },
+              {
+                q: 'Which user has full administrative power?',
+                options: ['guest', 'nobody', 'root', 'learner'],
+                answer: 2,
+                why: 'root (uid 0) bypasses normal permission checks.',
+              },
+            ],
+          },
+        ],
+      },
+
+      /* ========================== 5. PROCESSES ========================== */
+      {
+        id: 'processes',
+        title: 'Processes',
+        icon: '⚙',
+        description: 'See what\'s running and take control of it.',
+        lessons: [
+          {
+            id: 'ps-kill',
+            title: 'ps & kill',
+            xp: 25,
+            content: `
+              <p>A <strong>process</strong> is a running program. <code>ps</code> lists processes with their PID (process ID). <code>ps -ef</code> shows a fuller list. Every process has a parent, forming a tree you can view with <code>pstree</code>.</p>
+              <pre>ps
+ps -ef
+kill 204          # politely ask PID 204 to stop (SIGTERM)
+kill -9 204       # force-kill (SIGKILL) — last resort</pre>
+              <p>By default <code>kill</code> sends signal 15 (SIGTERM): "please shut down cleanly." <code>-9</code> is SIGKILL: unblockable, immediate, and the app can't clean up after itself.</p>`,
+            terminal: { fs: DEFAULT_FS, cwd: '/home/learner' },
+            task: {
+              description: 'List processes with <code>ps</code>, then send a signal with <code>kill 204</code>.',
+              hint: 'ps → kill 204',
+              check: (s) => ran(s, 'ps') && ran(s, 'kill 204') ? ok('You can see and stop processes.') : wait('Run ps, then kill 204.'),
+            },
+            quiz: [
+              {
+                q: 'What is a PID?',
+                options: ['A password', 'A process ID number', 'A file type', 'A network port'],
+                answer: 1,
+                why: 'PID = process identifier, a unique number for each running process.',
+              },
+              {
+                q: 'Which signal does plain `kill 123` send?',
+                options: ['SIGKILL (9)', 'SIGSTOP', 'SIGTERM (15)', 'SIGHUP'],
+                answer: 2,
+                why: 'kill sends SIGTERM (15) by default; use -9 for SIGKILL.',
+              },
+            ],
+          },
+        ],
+      },
+
+      /* ======================= 6. SHELL SCRIPTING ======================= */
+      {
+        id: 'scripting',
+        title: 'Shell Scripting',
+        icon: '›_',
+        description: 'Automate the boring stuff with bash scripts.',
+        lessons: [
+          {
+            id: 'first-script',
+            title: 'Your First Script',
+            xp: 35,
+            content: `
+              <p>A shell script is just a text file of commands. The first line, the <strong>shebang</strong> <code>#!/bin/bash</code>, tells the system which interpreter to use. Make the file executable with <code>chmod +x</code>, then run it with <code>./script.sh</code> or <code>bash script.sh</code>.</p>
+              <pre>echo "#!/bin/bash" > hello.sh
+echo "echo Hello, world" >> hello.sh
+chmod +x hello.sh
+bash hello.sh</pre>
+              <p>Comments start with <code>#</code>. Use them to explain what your script does — your future self will thank you.</p>`,
+            terminal: { fs: { home: { learner: {} } }, cwd: '/home/learner' },
+            task: {
+              description: 'Build <code>hello.sh</code>: a shebang line, then a line that echoes <code>Hello, world</code>. Make it executable with <code>chmod +x</code> and run it with <code>bash hello.sh</code>.',
+              hint: 'echo "#!/bin/bash" > hello.sh → echo "echo Hello, world" >> hello.sh → chmod +x hello.sh → bash hello.sh',
+              check: (s) => {
+                const c = text(s, 'hello.sh');
+                const x = modeOf(s, 'hello.sh').split('').some((d) => parseInt(d, 10) % 2 === 1);
+                return c.indexOf('#!/bin/bash') !== -1 && c.indexOf('Hello, world') !== -1 && x && ran(s, 'bash hello.sh')
+                  ? ok('Your first script runs. Automating everything is next.')
+                  : wait('Write the shebang + echo line into hello.sh, chmod +x it, then run bash hello.sh.');
+              },
+            },
+            quiz: [
+              {
+                q: 'What is the shebang line for bash?',
+                options: ['# bash', '#!/bin/bash', '!!/bin/bash', '&/bin/bash'],
+                answer: 1,
+                why: '#!/bin/bash selects the bash interpreter to run the script.',
+              },
+              {
+                q: 'What does chmod +x do?',
+                options: ['Adds execute permission', 'Adds a file extension', 'Copies the file', 'Opens the file'],
+                answer: 0,
+                why: '+x adds the execute bit so the script can be run as a program.',
+              },
+            ],
+          },
+          {
+            id: 'variables-args',
+            title: 'Variables & Arguments',
+            xp: 30,
+            content: `
+              <p>Variables store values. Assign with <code>NAME=value</code> (no spaces!) and read with <code>$NAME</code>. Quote variables to keep spaces intact.</p>
+              <pre>NAME="Linux"
+echo "Hello, $NAME"
+echo "Home is $HOME"</pre>
+              <p>Scripts receive arguments as <code>$1</code>, <code>$2</code>, etc. <code>$0</code> is the script name, <code>$#</code> is the number of arguments, and <code>$@</code> is all of them.</p>
+              <pre>echo "First argument: $1"</pre>
+              <p class="tip">Environment variables like <code>$HOME</code>, <code>$PATH</code> and <code>$USER</code> are available to every shell. See them all with <code>env</code>.</p>`,
+            terminal: { fs: { home: { learner: { 'vars.sh': '#!/bin/bash\nNAME="Linux"\necho "Hello, $NAME"\n' } } }, cwd: '/home/learner' },
+            task: {
+              description: 'Read <code>vars.sh</code> with <code>cat</code>, then run it with <code>bash vars.sh</code>.',
+              hint: 'cat vars.sh → bash vars.sh',
+              check: (s) => ran(s, 'cat vars.sh') && ran(s, 'bash vars.sh')
+                ? ok('Variables make scripts flexible.')
+                : wait('Cat the script and then run it with bash.'),
+            },
+            quiz: [
+              {
+                q: 'How do you read a variable named NAME in bash?',
+                options: ['NAME', '$NAME', '%NAME%', '(NAME)'],
+                answer: 1,
+                why: 'Prefix the name with $ to expand its value.',
+              },
+              {
+                q: 'What is $1 in a script?',
+                options: ['The script name', 'The first argument', 'The number of arguments', 'The current directory'],
+                answer: 1,
+                why: '$1 is the first argument; $0 is the script name; $# is the argument count.',
+              },
+            ],
+          },
+          {
+            id: 'conditionals-loops',
+            title: 'Conditionals & Loops',
+            xp: 35,
+            content: `
+              <p>Branching with <code>if</code>:</p>
+              <pre>if [ -f notes.txt ]; then
+  echo "notes.txt exists"
+else
+  echo "missing"
+fi</pre>
+              <p>Looping with <code>for</code>:</p>
+              <pre>for name in Alice Bob Carol; do
+  echo "Hello, $name"
+done</pre>
+              <p><code>[ ... ]</code> is the test command (note the spaces inside the brackets!). Common tests: <code>-f</code> file exists, <code>-d</code> directory exists, <code>-eq</code> numbers equal, <code>=</code> strings equal. Combine with <code>&amp;&amp;</code> (and) and <code>||</code> (or).</p>
+              <p class="tip">These building blocks — variables, conditionals, loops — turn a list of commands into a real program. That's how you automate backups, deployments, and cleanup.</p>`,
+            terminal: { fs: { home: { learner: { 'loop.sh': '#!/bin/bash\nfor name in Alice Bob Carol; do\n  echo "Hello, $name"\ndone\n' } } }, cwd: '/home/learner' },
+            task: {
+              description: 'Inspect <code>loop.sh</code> with <code>cat</code> and run it with <code>bash loop.sh</code>.',
+              hint: 'cat loop.sh → bash loop.sh',
+              check: (s) => ran(s, 'cat loop.sh') && ran(s, 'bash loop.sh')
+                ? ok('You can automate repetitive work.')
+                : wait('Cat loop.sh and run it with bash.'),
+            },
+            quiz: [
+              {
+                q: 'Which test checks whether a file exists?',
+                options: ['[ -f file ]', '[ -e file ]', '[ -x file ]', '[ -n file ]'],
+                answer: 0,
+                why: '-f tests for a regular file; -d tests for a directory.',
+              },
+              {
+                q: 'Which loop runs once per item in a list?',
+                options: ['while', 'until', 'for ... in', 'case'],
+                answer: 2,
+                why: 'for name in a b c; do ...; done iterates over a list.',
+              },
+            ],
+          },
+        ],
+      },
+
+      /* ======================= 7. SSH & REMOTE ======================= */
+      {
+        id: 'ssh',
+        title: 'SSH & Remote Machines',
+        icon: '⇄',
+        description: 'Work securely on machines across the world.',
+        lessons: [
+          {
+            id: 'ssh-basics',
+            title: 'SSH Basics',
+            xp: 25,
+            content: `
+              <p><strong>SSH</strong> (Secure Shell) gives you an encrypted terminal on a remote machine.</p>
+              <pre>ssh user@server.example.com
+ssh -p 2222 user@server      # custom port
+ssh user@server 'uptime'     # run one command and exit</pre>
+              <p>The first time you connect, SSH asks you to verify the host's fingerprint — this protects against man-in-the-middle attacks. Your session is encrypted end to end.</p>
+              <p class="tip">Admins use SSH constantly to manage servers. Combined with scripting, you can automate tasks across many machines.</p>`,
+            terminal: { fs: DEFAULT_FS, cwd: '/home/learner' },
+            task: {
+              description: 'Open a simulated SSH session: <code>ssh learner@server</code>.',
+              hint: 'ssh learner@server',
+              check: (s) => started(s, 'ssh ') ? ok('You\'re connected (simulated).') : wait('Try: ssh learner@server'),
+            },
+            quiz: [
+              {
+                q: 'What does SSH provide?',
+                options: ['An encrypted remote terminal', 'A file manager', 'A web server', 'A text editor'],
+                answer: 0,
+                why: 'SSH is an encrypted protocol for remote command-line access.',
+              },
+              {
+                q: 'What is the usual syntax to connect?',
+                options: ['ssh host:user', 'ssh user@host', 'connect user host', 'ssh -u user -h host'],
+                answer: 1,
+                why: 'ssh user@hostname is the standard form.',
+              },
+            ],
+          },
+          {
+            id: 'ssh-keys-scp',
+            title: 'SSH Keys & scp',
+            xp: 30,
+            content: `
+              <p>Passwords can be guessed; <strong>SSH keys</strong> are far stronger. <code>ssh-keygen</code> creates a private key (<code>~/.ssh/id_rsa</code> — guard it with your life) and a public key (<code>~/.ssh/id_rsa.pub</code> — safe to share). You put the public key in the server's <code>~/.ssh/authorized_keys</code>.</p>
+              <pre>ssh-keygen -t rsa
+ssh-copy-id user@server     # install your public key
+scp file.txt user@server:/tmp/   # copy a file over SSH</pre>
+              <p><code>scp</code> copies files securely using the same SSH connection. For ongoing syncing, look at <code>rsync</code>.</p>
+              <p class="warning">Never share or commit your private key. Use a passphrase for extra protection.</p>`,
+            terminal: { fs: { home: { learner: {} } }, cwd: '/home/learner' },
+            task: {
+              description: 'Generate a key pair with <code>ssh-keygen</code>, then confirm <code>~/.ssh/id_rsa.pub</code> exists with <code>ls -a ~/.ssh</code>.',
+              hint: 'ssh-keygen → ls -a ~/.ssh',
+              check: (s) => exists(s, '~/.ssh/id_rsa.pub') && ran(s, 'ls -a ~/.ssh')
+                ? ok('Key-based auth: secure and convenient.')
+                : wait('Run ssh-keygen, then ls -a ~/.ssh.'),
+            },
+            quiz: [
+              {
+                q: 'Which file must you keep secret?',
+                options: ['id_rsa.pub', 'id_rsa (private key)', 'authorized_keys', 'known_hosts'],
+                answer: 1,
+                why: 'The private key id_rsa must never leave your machine.',
+              },
+              {
+                q: 'Which command copies files over SSH?',
+                options: ['cp', 'scp', 'mv', 'ssh-copy-id'],
+                answer: 1,
+                why: 'scp (secure copy) transfers files over an SSH connection.',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  NS.COURSE = COURSE;
+})(window);
+
+</script>
+  <script>
+/*
+ * app.js — rendering, navigation, progress, and terminal wiring for Linux Dojo.
+ * Plain JS, no dependencies, works when index.html is opened directly.
+ */
+(function () {
+  'use strict';
+
+  const NS = window.LinuxDojo;
+  const COURSE = NS.COURSE;
+  const Shell = NS.Shell;
+  const STORAGE_KEY = 'linux-dojo-progress-v1';
+
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  };
+
+  /* ---------- flat lesson index ---------- */
+  const ALL = [];
+  COURSE.modules.forEach((mod, mi) => {
+    mod.lessons.forEach((lesson, li) => {
+      ALL.push({ module: mod, moduleIndex: mi, lesson: lesson, lessonIndex: li,
+        id: lesson.id, globalIndex: ALL.length });
+    });
+  });
+
+  function entryById(id) { return ALL.find((e) => e.id === id) || null; }
+
+  /* ---------- state ---------- */
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        return { completed: s.completed || {}, quizzes: s.quizzes || {}, current: s.current || null };
+      }
+    } catch (e) { /* ignore corrupt state */ }
+    return { completed: {}, quizzes: {}, current: null };
+  }
+
+  let state = loadState();
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* private mode */ }
+  }
+
+  function quizPassed(lesson) {
+    if (!lesson.quiz || !lesson.quiz.length) return false;
+    const score = state.quizzes[lesson.id] || 0;
+    return score >= Math.ceil(lesson.quiz.length * 0.6);
+  }
+
+  function totalXp() {
+    let xp = 0;
+    ALL.forEach((e) => {
+      if (state.completed[e.id]) xp += e.lesson.xp || 0;
+      if (quizPassed(e.lesson)) xp += (e.lesson.quiz.length) * 5;
+    });
+    return xp;
+  }
+
+  function completedCount() { return ALL.filter((e) => state.completed[e.id]).length; }
+
+  /* ---------- path formatting ---------- */
+  function prettyPath(shell) {
+    const p = shell.cwd();
+    const home = '/home/' + shell.user;
+    if (p === home) return '~';
+    if (p.indexOf(home + '/') === 0) return '~' + p.slice(home.length);
+    return p;
+  }
+
+  /* ---------- sidebar ---------- */
+  function renderSidebar() {
+    const summary = $('progress-summary');
+    summary.innerHTML = '';
+    const done = completedCount();
+    const total = ALL.length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    const label = el('div', 'progress-label');
+    label.appendChild(el('span', '', 'Your progress'));
+    const strong = el('strong', '', done + ' / ' + total + ' lessons');
+    label.appendChild(strong);
+    const track = el('div', 'progress-track');
+    const fill = el('div', 'progress-fill');
+    fill.style.width = pct + '%';
+    track.appendChild(fill);
+    summary.appendChild(label);
+    summary.appendChild(track);
+
+    const list = $('module-list');
+    list.innerHTML = '';
+    COURSE.modules.forEach((mod, mi) => {
+      const moduleDone = mod.lessons.filter((l) => state.completed[l.id]).length;
+      const wrap = el('div', 'module');
+
+      const head = el('div', 'module-head');
+      head.appendChild(el('span', 'module-icon', mod.icon));
+      head.appendChild(el('span', '', 'Level ' + (mi + 1) + ' · ' + mod.title));
+      head.appendChild(el('span', 'module-count', moduleDone + '/' + mod.lessons.length));
+      wrap.appendChild(head);
+
+      mod.lessons.forEach((lesson) => {
+        const btn = el('button', 'lesson-item');
+        btn.type = 'button';
+        const isDone = !!state.completed[lesson.id];
+        if (isDone) btn.classList.add('done');
+        if (state.current === lesson.id) btn.classList.add('active');
+        const dot = el('span', 'lesson-dot', isDone ? '✓' : '');
+        const title = el('span', '', lesson.title);
+        const xp = el('span', 'lesson-xp', '+' + (lesson.xp || 0));
+        btn.appendChild(dot);
+        btn.appendChild(title);
+        btn.appendChild(xp);
+        btn.addEventListener('click', () => openLesson(lesson.id));
+        wrap.appendChild(btn);
+      });
+      list.appendChild(wrap);
+    });
+
+    $('xp-display').textContent = totalXp() + ' XP';
+  }
+
+  /* ---------- lesson view ---------- */
+  function openLesson(id) {
+    const entry = entryById(id);
+    if (!entry) return;
+    state.current = id;
+    saveState();
+    renderSidebar();
+    renderLesson(entry);
+    if (window.innerWidth <= 820) $('sidebar').classList.remove('open');
+    window.scrollTo({ top: 0 });
+  }
+
+  function renderLesson(entry) {
+    const lesson = entry.lesson;
+    const mod = entry.module;
+    const view = $('lesson-view');
+    view.innerHTML = '';
+
+    $('breadcrumb').innerHTML = '';
+    $('breadcrumb').appendChild(el('span', '', mod.title));
+    $('breadcrumb').appendChild(el('span', 'sep', '›'));
+    $('breadcrumb').appendChild(el('strong', '', lesson.title));
+    $('topbar-level').textContent = 'LEVEL ' + (entry.moduleIndex + 1) + ' / ' + COURSE.modules.length;
+
+    /* header */
+    const head = el('div', 'lesson-head');
+    head.appendChild(el('div', 'eyebrow', 'Level ' + (entry.moduleIndex + 1) + ' · ' + mod.title));
+    const h1 = el('h1', 'lesson-title', lesson.title);
+    head.appendChild(h1);
+    const meta = el('div', 'lesson-meta');
+    meta.appendChild(el('span', 'xp-badge', '+' + (lesson.xp || 0) + ' XP'));
+    if (state.completed[lesson.id]) meta.appendChild(el('span', 'completed-badge', '✓ Completed'));
+    head.appendChild(meta);
+    view.appendChild(head);
+
+    /* concept panel */
+    const concept = el('div', 'panel');
+    concept.appendChild(el('h2', 'panel-title', 'The idea'));
+    const content = el('div', 'lesson-content');
+    content.innerHTML = lesson.content || '';
+    concept.appendChild(content);
+    view.appendChild(concept);
+
+    /* task + terminal */
+    let taskStatusEl = null;
+    let taskPassed = !lesson.task; // no task = nothing to prove
+    if (lesson.task) {
+      const practice = el('div', 'panel');
+      practice.appendChild(el('h2', 'panel-title', 'Your turn'));
+
+      taskStatusEl = el('div', 'task-status pending');
+      const icon = el('span', 'status-icon', '!');
+      const txt = el('div', 'status-text');
+      txt.innerHTML = lesson.task.description || '';
+      if (lesson.task.hint) {
+        const hint = el('div', 'task-hint', 'Hint: ' + stripTags(lesson.task.hint));
+        txt.appendChild(hint);
+      }
+      taskStatusEl.appendChild(icon);
+      taskStatusEl.appendChild(txt);
+      practice.appendChild(taskStatusEl);
+      view.appendChild(practice);
+    }
+
+    let shell = null;
+    if (lesson.terminal !== false) {
+      const termPanel = el('div', 'panel');
+      termPanel.appendChild(el('h2', 'panel-title', 'Practice terminal'));
+      termPanel.appendChild(makeTerminal(lesson, () => {
+        if (!lesson.task) return;
+        const result = safeCheck(lesson.task, shell);
+        if (result && result.pass && !taskPassed) {
+          taskPassed = true;
+          taskStatusEl.classList.remove('pending');
+          taskStatusEl.classList.add('passed');
+          taskStatusEl.querySelector('.status-icon').textContent = '✓';
+          const textEl = taskStatusEl.querySelector('.status-text');
+          textEl.innerHTML = '';
+          textEl.appendChild(el('div', '', result.message || 'Task complete!'));
+          updateCompleteButton();
+        }
+      }, (s) => { shell = s; }));
+      view.appendChild(termPanel);
+    }
+
+    /* quiz */
+    let checkQuizBtn = null;
+    if (lesson.quiz && lesson.quiz.length) {
+      const quizPanel = el('div', 'panel');
+      quizPanel.appendChild(el('h2', 'panel-title', 'Check your understanding'));
+      const scoreLine = el('div', 'quiz-score');
+      const best = state.quizzes[lesson.id] || 0;
+      scoreLine.textContent = best
+        ? 'Best score: ' + best + ' / ' + lesson.quiz.length + (quizPassed(lesson) ? ' — passed!' : '')
+        : 'Answer all questions, then check your answers.';
+      quizPanel.appendChild(scoreLine);
+
+      const selections = {};
+      lesson.quiz.forEach((q, qi) => {
+        const block = el('div', 'question');
+        block.appendChild(el('div', 'question-q', (qi + 1) + '. ' + q.q));
+        const opts = el('div', 'options');
+        q.options.forEach((opt, oi) => {
+          const b = el('button', 'option');
+          b.type = 'button';
+          const radio = el('span', 'radio');
+          b.appendChild(radio);
+          b.appendChild(el('span', '', opt));
+          b.addEventListener('click', () => {
+            if (b.disabled) return;
+            selections[qi] = oi;
+            Array.from(opts.children).forEach((c) => c.classList.remove('selected'));
+            b.classList.add('selected');
+          });
+          opts.appendChild(b);
+        });
+        block.appendChild(opts);
+        quizPanel.appendChild(block);
+      });
+
+      checkQuizBtn = el('button', 'btn secondary', 'Check answers');
+      checkQuizBtn.type = 'button';
+      checkQuizBtn.addEventListener('click', () => {
+        let correct = 0;
+        lesson.quiz.forEach((q, qi) => {
+          const chosen = selections[qi];
+          const opts = quizPanel.querySelectorAll('.question')[qi].querySelectorAll('.option');
+          opts.forEach((o, oi) => {
+            o.disabled = true;
+            o.classList.remove('selected');
+            if (oi === q.answer) o.classList.add('correct');
+            else if (oi === chosen) o.classList.add('wrong');
+          });
+          if (chosen === q.answer) correct++;
+          const explain = el('div', 'explain', q.why || '');
+          quizPanel.querySelectorAll('.question')[qi].appendChild(explain);
+        });
+        scoreLine.textContent = 'You got ' + correct + ' / ' + lesson.quiz.length + ' correct.';
+        if (correct > (state.quizzes[lesson.id] || 0)) {
+          state.quizzes[lesson.id] = correct;
+          saveState();
+          renderSidebar();
+        }
+        checkQuizBtn.disabled = true;
+      });
+      quizPanel.appendChild(checkQuizBtn);
+      view.appendChild(quizPanel);
+    }
+
+    /* actions */
+    const actions = el('div', 'actions');
+    const completeBtn = el('button', 'btn', lesson.task ? 'Complete & continue →' : 'Continue →');
+    completeBtn.type = 'button';
+    const note = el('span', 'action-note', lesson.task ? 'Finish the task above to unlock this.' : '');
+    completeBtn.disabled = !taskPassed;
+    completeBtn.addEventListener('click', () => {
+      const firstTime = !state.completed[lesson.id];
+      state.completed[lesson.id] = true;
+      saveState();
+      if (firstTime && note) note.textContent = 'Nice work! +' + (lesson.xp || 0) + ' XP earned.';
+      const next = ALL[entry.globalIndex + 1];
+      if (next) {
+        openLesson(next.id);
+      } else {
+        renderSidebar();
+        renderCourseComplete();
+      }
+    });
+    actions.appendChild(completeBtn);
+    actions.appendChild(note);
+    view.appendChild(actions);
+
+    function updateCompleteButton() {
+      completeBtn.disabled = false;
+      if (note) note.textContent = 'Task done — claim your XP and continue.';
+    }
+  }
+
+  function renderCourseComplete() {
+    const view = $('lesson-view');
+    view.innerHTML = '';
+    $('breadcrumb').innerHTML = '';
+    $('breadcrumb').appendChild(el('strong', '', 'Course complete'));
+    $('topbar-level').textContent = '★ ' + totalXp() + ' XP';
+
+    const w = el('div', 'done-panel');
+    w.appendChild(el('h1', '', 'You finished the dojo!'));
+    w.appendChild(el('p', '', 'You have ' + completedCount() + ' of ' + ALL.length + ' lessons under your belt and ' + totalXp() + ' XP. The real learning happens when you use these commands on your own machine. Keep practicing — try a real Linux box, break things in a VM, and read the man pages.'));
+    const b = el('button', 'btn', 'Back to the first lesson');
+    b.type = 'button';
+    b.addEventListener('click', () => openLesson(ALL[0].id));
+    w.appendChild(b);
+    view.appendChild(w);
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function renderWelcome() {
+    const view = $('lesson-view');
+    view.innerHTML = '';
+    $('breadcrumb').innerHTML = '';
+    $('breadcrumb').appendChild(el('strong', '', COURSE.title));
+    $('topbar-level').textContent = 'Hands-on Linux';
+
+    const resumeId = findResumeId();
+    const cta = resumeId ? 'Resume: ' + escapeHtml(entryById(resumeId).lesson.title) : 'Start the course →';
+
+    const w = el('div', 'welcome');
+    w.innerHTML = `
+      <div class="hero">
+        <div>
+          <div class="hero-pills">
+            <span class="pill">${ALL.length} lessons</span>
+            <span class="pill teal">${COURSE.modules.length} levels</span>
+            <span class="pill">No setup</span>
+          </div>
+          <h1>Learn Linux <span>by doing.</span></h1>
+          <p>${escapeHtml(COURSE.tagline)} Each lesson gives you a short explanation, a task to complete in a practice terminal, and a quick quiz. Nothing is installed and nothing can break — you just type.</p>
+          <button class="btn" id="hero-start" type="button">${cta}</button>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-glow"></div>
+          <div class="hero-window">
+            <div class="term-bar">
+              <span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span>
+              <span class="term-name">learner@linux-dojo — bash</span>
+            </div>
+            <div class="hero-code">
+              <div><span class="c-green">learner</span>:<span class="c-blue">~</span>$ pwd</div>
+              <div>/home/learner</div>
+              <div><span class="c-green">learner</span>:<span class="c-blue">~</span>$ ls</div>
+              <div>notes.txt&nbsp; projects/&nbsp; todo.txt</div>
+              <div><span class="c-green">learner</span>:<span class="c-blue">~</span>$ <span class="c-amber">grep</span> Linux notes.txt</div>
+              <div>Linux is fun</div>
+              <div><span class="c-dim"># now you try →</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="features">
+        <div class="feature"><div class="feature-icon">⌨</div><h3>Real command practice</h3><p>Type actual commands in a simulated shell with its own filesystem. Mistakes are harmless.</p></div>
+        <div class="feature"><div class="feature-icon">◎</div><h3>Learn by doing</h3><p>Every lesson has a hands-on task and a short quiz with explanations — no passive reading.</p></div>
+        <div class="feature"><div class="feature-icon">↗</div><h3>Progress that sticks</h3><p>Earn XP, track completed lessons, and pick up exactly where you left off.</p></div>
+      </div>`;
+    view.appendChild(w);
+    $('hero-start').addEventListener('click', () => openLesson(resumeId || ALL[0].id));
+  }
+
+  function findResumeId() {
+    const firstIncomplete = ALL.find((e) => !state.completed[e.id]);
+    return firstIncomplete ? firstIncomplete.id : null;
+  }
+
+  /* ---------- terminal widget ---------- */
+  function makeTerminal(lesson, onCommand, gotShell) {
+    const cfg = lesson.terminal || {};
+    const shell = new Shell(cfg);
+    if (gotShell) gotShell(shell);
+
+    const wrap = el('div', 'terminal');
+    const bar = el('div', 'term-bar');
+    [['r'], ['y'], ['g']].forEach((c) => bar.appendChild(el('span', 'term-dot ' + c[0])));
+    bar.appendChild(el('span', 'term-name', 'learner@linux-dojo — bash'));
+    const clearBtn = el('button', 'term-clear', 'clear');
+    clearBtn.type = 'button';
+    bar.appendChild(clearBtn);
+    wrap.appendChild(bar);
+
+    const output = el('div', 'term-output');
+    output.setAttribute('aria-live', 'polite');
+    wrap.appendChild(output);
+
+    const row = el('div', 'term-input-row');
+    const prompt = el('span', 'term-prompt');
+    const pathSpan = el('span', 'path', prettyPath(shell));
+    prompt.appendChild(pathSpan);
+    prompt.appendChild(el('span', 'dollar', ' $ '));
+    row.appendChild(prompt);
+    const input = el('input', 'term-input');
+    input.type = 'text';
+    input.setAttribute('autocomplete', 'off');
+    input.setAttribute('autocapitalize', 'off');
+    input.setAttribute('spellcheck', 'false');
+    input.setAttribute('aria-label', 'Terminal command');
+    row.appendChild(input);
+    wrap.appendChild(row);
+    wrap.appendChild(el('div', 'term-help', 'Try a command above, or type help. ↑/↓ = command history.'));
+
+    const history = [];
+    let histIdx = 0;
+
+    function appendLine(data) {
+      if (data.clear) { output.innerHTML = ''; return; }
+      const node = el('div', 'term-line ' + (data.cls || ''));
+      node.textContent = data.text;
+      output.appendChild(node);
+    }
+
+    function appendCommand(raw) {
+      const node = el('div', 'term-line cmd');
+      node.appendChild(el('span', 'prompt', 'learner:'));
+      node.appendChild(el('span', 'path', prettyPath(shell)));
+      node.appendChild(el('span', '', '$ ' + raw));
+      output.appendChild(node);
+    }
+
+    function submit() {
+      const raw = input.value;
+      input.value = '';
+      if (!raw.trim()) return;
+      history.push(raw);
+      histIdx = history.length;
+      appendCommand(raw);
+      const lines = shell.run(raw);
+      lines.forEach(appendLine);
+      output.scrollTop = output.scrollHeight;
+      if (onCommand) onCommand();
+    }
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); submit(); }
+      else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (histIdx > 0) { histIdx--; input.value = history[histIdx] || ''; }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (histIdx < history.length - 1) { histIdx++; input.value = history[histIdx] || ''; }
+        else { histIdx = history.length; input.value = ''; }
+      } else if (e.key === 'l' && e.ctrlKey) {
+        e.preventDefault(); output.innerHTML = '';
+      }
+    });
+
+    clearBtn.addEventListener('click', () => { output.innerHTML = ''; input.focus(); });
+    setTimeout(() => input.focus(), 50);
+
+    // Welcome line
+    appendLine({ text: 'Linux Dojo terminal — type "help" to see available commands.', cls: 'muted' });
+    appendLine({ text: '' });
+
+    return wrap;
+  }
+
+  function safeCheck(task, shell) {
+    if (!task || typeof task.check !== 'function' || !shell) return null;
+    try { return task.check(shell); }
+    catch (e) { return { pass: false, message: 'Check error: ' + e.message }; }
+  }
+
+  function stripTags(html) {
+    const d = document.createElement('div');
+    d.innerHTML = html;
+    return d.textContent || '';
+  }
+
+  /* ---------- wiring ---------- */
+  $('reset-progress').addEventListener('click', () => {
+    if (!window.confirm('Reset all progress and XP? This cannot be undone.')) return;
+    state = { completed: {}, quizzes: {}, current: null };
+    saveState();
+    renderSidebar();
+    renderWelcome();
+  });
+
+  $('menu-toggle').addEventListener('click', () => {
+    $('sidebar').classList.toggle('open');
+  });
+
+  renderSidebar();
+  if (state.current && entryById(state.current)) renderLesson(entryById(state.current));
+  else renderWelcome();
+  const bootError = $('boot-error');
+  if (bootError) bootError.remove();
+})();
+
+</script>
+</body>
+</html>

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Linux Dojo — Learn Linux by doing</title>
   <meta name="description" content="An interactive, hands-on Linux course with a simulated terminal, exercises, and quizzes.">
+  <meta name="theme-color" content="#5b5bd6">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -33,7 +34,12 @@
         <div class="breadcrumb" id="breadcrumb"></div>
         <div class="topbar-level" id="topbar-level"></div>
       </header>
-      <div class="content" id="lesson-view"></div>
+      <div class="content" id="lesson-view">
+        <div class="boot-error" id="boot-error">
+          <strong>The course didn't start.</strong> Your browser blocked the local scripts, or this file was opened as raw source.
+          Download <code>linux-dojo.html</code> and open that file in your browser instead — everything is contained in it.
+        </div>
+      </div>
     </main>
   </div>
 

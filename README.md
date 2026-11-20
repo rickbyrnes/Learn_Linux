@@ -4,9 +4,13 @@ An interactive, hands-on Linux course that runs entirely in your browser. No ins
 
 ## Run it
 
-Open `index.html` in any modern browser. That's it.
+**Open `linux-dojo.html` in a browser.** It is one self-contained file — all styling and code are inside it, so nothing can fail to load. Double-click it, or drag it into a browser tab.
 
-If you prefer serving it locally:
+`index.html` is the modular source version and works the same way when opened from disk. It needs the `css/` and `js/` folders next to it.
+
+> If you clicked `index.html` on GitHub, you saw the *source code*, not the app. Download the file (or the whole repo) first, then open it locally. GitHub does not run HTML/JavaScript.
+
+Optional local server:
 
 ```bash
 cd /path/to/Learn_Linux
@@ -33,12 +37,20 @@ The simulated shell supports `help`, `man`, `pwd`, `ls`, `cd`, `cat`, `echo`, `t
 ## Project layout
 
 ```
-index.html       app shell
+linux-dojo.html  single-file build — just open this to use the app
+index.html       modular source app shell
 css/styles.css   all styling
 js/terminal.js   simulated shell + virtual filesystem (window.LinuxDojo.Shell)
 js/lessons.js    ALL course content  ← edit this to add lessons
 js/app.js        rendering, navigation, progress
+tools/build-single.js  regenerates linux-dojo.html from the source files
 tests/run.js     node test harness
+```
+
+After editing any source file, regenerate the single-file build:
+
+```bash
+node tools/build-single.js
 ```
 
 ## Add a lesson
