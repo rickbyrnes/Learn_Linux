@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Linux Dojo — Learn Linux by doing</title>
+  <meta name="description" content="An interactive, hands-on Linux course with a simulated terminal, exercises, and quizzes.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">&gt;_</div>
+        <div>
+          <div class="brand-name">Linux Dojo</div>
+          <div class="brand-tag" id="brand-tag">Learn by doing</div>
+        </div>
+      </div>
+
+      <div class="progress-summary" id="progress-summary"></div>
+      <nav class="modules" id="module-list" aria-label="Course modules"></nav>
+
+      <div class="sidebar-footer">
+        <div class="xp-chip"><span class="xp-star">★</span> <span id="xp-display">0 XP</span></div>
+        <button class="link-btn" id="reset-progress" type="button">Reset progress</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Toggle menu">☰</button>
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <div class="topbar-level" id="topbar-level"></div>
+      </header>
+      <div class="content" id="lesson-view"></div>
+    </main>
+  </div>
+
+  <script src="js/terminal.js"></script>
+  <script src="js/lessons.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
